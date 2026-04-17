@@ -24,7 +24,6 @@ public class BudgetRepository {
 		if (tableName == null || tableName.trim().isEmpty()) {
 			throw new IllegalArgumentException("Table name must not be null or empty");
 		}
-        
 		String sql = "SELECT * FROM " + tableName;
 		System.out.println("Executing SQL: " + sql); // Debug log
 		return jdbcTemplate.queryForList(sql);

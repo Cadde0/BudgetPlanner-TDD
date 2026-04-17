@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 Test set: application.BudgetServiceUnitTest
 -------------------------------------------------------------------------------
-Tests run: 4, Failures: 0, Errors: 4, Skipped: 0, Time elapsed: 0.723 s <<< FAILURE! -- in application.BudgetServiceUnitTest
-application.BudgetServiceUnitTest.testGetAllFromTableEmptyTableName -- Time elapsed: 0.490 s <<< ERROR!
+Tests run: 4, Failures: 0, Errors: 4, Skipped: 0, Time elapsed: 0.392 s <<< FAILURE! -- in application.BudgetServiceUnitTest
+application.BudgetServiceUnitTest.testGetAllFromTableEmptyTableName -- Time elapsed: 0.147 s <<< ERROR!
 org.mockito.exceptions.base.MockitoException: 
 
 Mockito cannot mock this class: class org.springframework.jdbc.core.JdbcTemplate.
@@ -23,12 +23,12 @@ OS version         : 26.3.1
 You are seeing this disclaimer because Mockito is configured to create inlined mocks.
 You can learn about inline mocks and their limitations under item #39 of the Mockito class javadoc.
 
-Underlying exception : org.mockito.exceptions.base.MockitoException: Could not modify all classes [class org.springframework.jdbc.support.JdbcAccessor, interface org.springframework.beans.factory.InitializingBean, interface org.springframework.jdbc.core.JdbcOperations, class java.lang.Object, class org.springframework.jdbc.core.JdbcTemplate]
+Underlying exception : org.mockito.exceptions.base.MockitoException: Could not modify all classes [class org.springframework.jdbc.core.JdbcTemplate, interface org.springframework.beans.factory.InitializingBean, class java.lang.Object, interface org.springframework.jdbc.core.JdbcOperations, class org.springframework.jdbc.support.JdbcAccessor]
 	at application.BudgetServiceUnitTest.setUp(BudgetServiceUnitTest.java:29)
 	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
-Caused by: org.mockito.exceptions.base.MockitoException: Could not modify all classes [class org.springframework.jdbc.support.JdbcAccessor, interface org.springframework.beans.factory.InitializingBean, interface org.springframework.jdbc.core.JdbcOperations, class java.lang.Object, class org.springframework.jdbc.core.JdbcTemplate]
+Caused by: org.mockito.exceptions.base.MockitoException: Could not modify all classes [class org.springframework.jdbc.core.JdbcTemplate, interface org.springframework.beans.factory.InitializingBean, class java.lang.Object, interface org.springframework.jdbc.core.JdbcOperations, class org.springframework.jdbc.support.JdbcAccessor]
 	at net.bytebuddy.TypeCache.findOrInsert(TypeCache.java:168)
 	at net.bytebuddy.TypeCache$WithInlineExpunction.findOrInsert(TypeCache.java:399)
 	at net.bytebuddy.TypeCache.findOrInsert(TypeCache.java:190)
@@ -79,7 +79,7 @@ Caused by: java.lang.IllegalArgumentException: Java 25 (69) is not supported by 
 	at org.mockito.internal.creation.bytebuddy.InlineBytecodeGenerator.triggerRetransformation(InlineBytecodeGenerator.java:281)
 	... 26 more
 
-application.BudgetServiceUnitTest.testGetAllFromTableReturnsData -- Time elapsed: 0.063 s <<< ERROR!
+application.BudgetServiceUnitTest.testGetAllFromTableReturnsData -- Time elapsed: 0.070 s <<< ERROR!
 org.mockito.exceptions.base.MockitoException: 
 
 Mockito cannot mock this class: class org.springframework.jdbc.core.JdbcTemplate.
@@ -100,12 +100,12 @@ OS version         : 26.3.1
 You are seeing this disclaimer because Mockito is configured to create inlined mocks.
 You can learn about inline mocks and their limitations under item #39 of the Mockito class javadoc.
 
-Underlying exception : org.mockito.exceptions.base.MockitoException: Could not modify all classes [class org.springframework.jdbc.support.JdbcAccessor, interface org.springframework.beans.factory.InitializingBean, interface org.springframework.jdbc.core.JdbcOperations, class java.lang.Object, class org.springframework.jdbc.core.JdbcTemplate]
+Underlying exception : org.mockito.exceptions.base.MockitoException: Could not modify all classes [class org.springframework.jdbc.core.JdbcTemplate, interface org.springframework.beans.factory.InitializingBean, class java.lang.Object, interface org.springframework.jdbc.core.JdbcOperations, class org.springframework.jdbc.support.JdbcAccessor]
 	at application.BudgetServiceUnitTest.setUp(BudgetServiceUnitTest.java:29)
 	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
-Caused by: org.mockito.exceptions.base.MockitoException: Could not modify all classes [class org.springframework.jdbc.support.JdbcAccessor, interface org.springframework.beans.factory.InitializingBean, interface org.springframework.jdbc.core.JdbcOperations, class java.lang.Object, class org.springframework.jdbc.core.JdbcTemplate]
+Caused by: org.mockito.exceptions.base.MockitoException: Could not modify all classes [class org.springframework.jdbc.core.JdbcTemplate, interface org.springframework.beans.factory.InitializingBean, class java.lang.Object, interface org.springframework.jdbc.core.JdbcOperations, class org.springframework.jdbc.support.JdbcAccessor]
 	at net.bytebuddy.TypeCache.findOrInsert(TypeCache.java:168)
 	at net.bytebuddy.TypeCache$WithInlineExpunction.findOrInsert(TypeCache.java:399)
 	at net.bytebuddy.TypeCache.findOrInsert(TypeCache.java:190)
@@ -156,7 +156,7 @@ Caused by: java.lang.IllegalArgumentException: Java 25 (69) is not supported by 
 	at org.mockito.internal.creation.bytebuddy.InlineBytecodeGenerator.triggerRetransformation(InlineBytecodeGenerator.java:281)
 	... 26 more
 
-application.BudgetServiceUnitTest.testGetAllFromTableNullTableName -- Time elapsed: 0.066 s <<< ERROR!
+application.BudgetServiceUnitTest.testGetAllFromTableNullTableName -- Time elapsed: 0.079 s <<< ERROR!
 org.mockito.exceptions.base.MockitoException: 
 
 Mockito cannot mock this class: class org.springframework.jdbc.core.JdbcTemplate.
@@ -177,12 +177,12 @@ OS version         : 26.3.1
 You are seeing this disclaimer because Mockito is configured to create inlined mocks.
 You can learn about inline mocks and their limitations under item #39 of the Mockito class javadoc.
 
-Underlying exception : org.mockito.exceptions.base.MockitoException: Could not modify all classes [class org.springframework.jdbc.support.JdbcAccessor, interface org.springframework.beans.factory.InitializingBean, interface org.springframework.jdbc.core.JdbcOperations, class java.lang.Object, class org.springframework.jdbc.core.JdbcTemplate]
+Underlying exception : org.mockito.exceptions.base.MockitoException: Could not modify all classes [class org.springframework.jdbc.core.JdbcTemplate, interface org.springframework.beans.factory.InitializingBean, class java.lang.Object, interface org.springframework.jdbc.core.JdbcOperations, class org.springframework.jdbc.support.JdbcAccessor]
 	at application.BudgetServiceUnitTest.setUp(BudgetServiceUnitTest.java:29)
 	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
-Caused by: org.mockito.exceptions.base.MockitoException: Could not modify all classes [class org.springframework.jdbc.support.JdbcAccessor, interface org.springframework.beans.factory.InitializingBean, interface org.springframework.jdbc.core.JdbcOperations, class java.lang.Object, class org.springframework.jdbc.core.JdbcTemplate]
+Caused by: org.mockito.exceptions.base.MockitoException: Could not modify all classes [class org.springframework.jdbc.core.JdbcTemplate, interface org.springframework.beans.factory.InitializingBean, class java.lang.Object, interface org.springframework.jdbc.core.JdbcOperations, class org.springframework.jdbc.support.JdbcAccessor]
 	at net.bytebuddy.TypeCache.findOrInsert(TypeCache.java:168)
 	at net.bytebuddy.TypeCache$WithInlineExpunction.findOrInsert(TypeCache.java:399)
 	at net.bytebuddy.TypeCache.findOrInsert(TypeCache.java:190)
@@ -233,7 +233,7 @@ Caused by: java.lang.IllegalArgumentException: Java 25 (69) is not supported by 
 	at org.mockito.internal.creation.bytebuddy.InlineBytecodeGenerator.triggerRetransformation(InlineBytecodeGenerator.java:281)
 	... 26 more
 
-application.BudgetServiceUnitTest.testGetAllFromTableThrowsOnDbError -- Time elapsed: 0.091 s <<< ERROR!
+application.BudgetServiceUnitTest.testGetAllFromTableThrowsOnDbError -- Time elapsed: 0.088 s <<< ERROR!
 org.mockito.exceptions.base.MockitoException: 
 
 Mockito cannot mock this class: class org.springframework.jdbc.core.JdbcTemplate.
@@ -254,12 +254,12 @@ OS version         : 26.3.1
 You are seeing this disclaimer because Mockito is configured to create inlined mocks.
 You can learn about inline mocks and their limitations under item #39 of the Mockito class javadoc.
 
-Underlying exception : org.mockito.exceptions.base.MockitoException: Could not modify all classes [class org.springframework.jdbc.support.JdbcAccessor, interface org.springframework.beans.factory.InitializingBean, interface org.springframework.jdbc.core.JdbcOperations, class java.lang.Object, class org.springframework.jdbc.core.JdbcTemplate]
+Underlying exception : org.mockito.exceptions.base.MockitoException: Could not modify all classes [class org.springframework.jdbc.core.JdbcTemplate, interface org.springframework.beans.factory.InitializingBean, class java.lang.Object, interface org.springframework.jdbc.core.JdbcOperations, class org.springframework.jdbc.support.JdbcAccessor]
 	at application.BudgetServiceUnitTest.setUp(BudgetServiceUnitTest.java:29)
 	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
-Caused by: org.mockito.exceptions.base.MockitoException: Could not modify all classes [class org.springframework.jdbc.support.JdbcAccessor, interface org.springframework.beans.factory.InitializingBean, interface org.springframework.jdbc.core.JdbcOperations, class java.lang.Object, class org.springframework.jdbc.core.JdbcTemplate]
+Caused by: org.mockito.exceptions.base.MockitoException: Could not modify all classes [class org.springframework.jdbc.core.JdbcTemplate, interface org.springframework.beans.factory.InitializingBean, class java.lang.Object, interface org.springframework.jdbc.core.JdbcOperations, class org.springframework.jdbc.support.JdbcAccessor]
 	at net.bytebuddy.TypeCache.findOrInsert(TypeCache.java:168)
 	at net.bytebuddy.TypeCache$WithInlineExpunction.findOrInsert(TypeCache.java:399)
 	at net.bytebuddy.TypeCache.findOrInsert(TypeCache.java:190)

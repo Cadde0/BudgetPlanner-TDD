@@ -17,6 +17,6 @@ public class DbTestController {
     @GetMapping("/dbtest")
     public List<Map<String, Object>> dbTest() {
         // Try querying a table you know exists, e.g., "category"
-        return budgetRepository.queryAllRows("income");
+        return budgetRepository.queryAllRows("category");
     }
 }
