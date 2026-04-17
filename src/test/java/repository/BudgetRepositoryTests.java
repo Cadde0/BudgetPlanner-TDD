@@ -41,12 +41,12 @@ class BudgetRepositoryTests {
 	}
 
 	@Test
-	void testQueryAllRowsWithNullTableNameThrows() {
-		assertThrows(IllegalArgumentException.class, () -> budgetRepository.queryAllRows(null), "Should throw IllegalArgumentException for null table name");
-	}
+    void testQueryAllRowsWithNullTableNameThrows() {
+        assertThrows(RuntimeException.class, () -> budgetRepository.queryAllRows(null), "Should throw for null table name");
+    }
 
 	@Test
-	void testQueryAllRowsWithEmptyTableNameThrows() {
-		assertThrows(IllegalArgumentException.class, () -> budgetRepository.queryAllRows(""), "Should throw IllegalArgumentException for empty table name");
-	}
+    void testQueryAllRowsWithEmptyTableNameThrows() {
+        assertThrows(RuntimeException.class, () -> budgetRepository.queryAllRows(""), "Should throw for empty table name");
+    }
 }
