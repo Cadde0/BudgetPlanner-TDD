@@ -10,6 +10,9 @@
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
 
+# Maven build output
+target/
+
 # Package Files #
 *.jar
 *.war
@@ -23,5 +26,7 @@
 hs_err_pid*
 replay_pid*
 
-#Properties
-*.properties
+# Local-only config
+src/main/resources/application.properties
+src/main/resources/application-local.properties
+*.env
