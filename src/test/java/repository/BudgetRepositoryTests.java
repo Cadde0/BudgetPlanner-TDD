@@ -49,4 +49,27 @@ class BudgetRepositoryTests {
     void testQueryAllRowsWithEmptyTableNameThrows() {
         assertThrows(RuntimeException.class, () -> budgetRepository.queryAllRows(""), "Should throw for empty table name");
     }
+
+	@Test
+	void testQueryByIdReturnsRowForValidId() {
+		Map<String, Object> result = budgetRepository.queryById("category", 1);
+		assertNotNull(result, "Should return a row for valid ID");
+		assertEquals(1, result.get("id"), "ID should match the requested value");
+	}
+
+	@Test
+	void testQueryByIdReturnsNullForNonExistentId() {
+		Map<String, Object> result = budgetRepository.queryById("category", -9999);
+		assertNull(result, "Should return null for non-existent ID");
+	}
+
+	@Test
+	void testQueryByIdWithNullTableNameThrows() {
+		assertThrows(RuntimeException.class, () -> budgetRepository.queryById(null, 1), "Should throw for null table name");
+	}
+
+	@Test
+	void testQueryByIdWithEmptyTableNameThrows() {
+		assertThrows(RuntimeException.class, () -> budgetRepository.queryById("", 1), "Should throw for empty table name");
+	}
 }
