@@ -1,0 +1,42 @@
+package presentation;
+
+import application.BudgetService;
+import application.ExpensesService;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api/expenses")
+public class ExpensesController {
+
+    private final ExpensesService expensesService;
+    private final BudgetService budgetService;
+
+    public ExpensesController(ExpensesService expensesService, BudgetService budgetService) {
+        this.expensesService = expensesService;
+        this.budgetService = budgetService;
+    }
+
+    @GetMapping
+    public List<Map<String, Object>> getAllExpenses() {
+        return budgetService.getAllFromTable("expenses");
+    }
+
+    @GetMapping("/categories")
+    public List<Map<String, Object>> getAllCategories() {
+        return budgetService.getAllFromTable("category");
+    }
+
+    @PutMapping("/{expenseId}/category/{categoryId}")
+    public ResponseEntity<Boolean> setCategory(@PathVariable int expenseId, @PathVariable int categoryId) {
+        expensesService.setCategory(expenseId, categoryId);
+        return ResponseEntity.ok(true);
+    }
+}
