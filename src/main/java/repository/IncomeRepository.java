@@ -8,6 +8,10 @@ import java.sql.PreparedStatement;
 import java.util.Map;
 import java.util.Objects;
 
+/**
+ * Repository for CRUD operations on the income table.
+ * Handles validation and database interaction for income records.
+ */
 @Repository
 public class IncomeRepository {
 	private final JdbcTemplate jdbcTemplate;
@@ -16,6 +20,14 @@ public class IncomeRepository {
 		this.jdbcTemplate = jdbcTemplate;
 	}
 
+	/**
+	 * Inserts a new income record into the database.
+	 *
+	 * @param income a map containing the income data (must include 'amount' > 0)
+	 * @return the generated id of the new income
+	 * @throws NullPointerException if income is null
+	 * @throws IllegalArgumentException if amount is missing or not positive
+	 */
 	public int addIncome(Map<String, Object> income) {
 		Objects.requireNonNull(income, "Income map must not be null");
 		if (!income.containsKey("amount")) {
@@ -39,6 +51,14 @@ public class IncomeRepository {
 		return key.intValue();
 	}
 
+	/**
+	 * Updates an existing income record in the database.
+	 *
+	 * @param income a map containing 'id' and new 'amount' (> 0)
+	 * @return true if the update was successful, false otherwise
+	 * @throws NullPointerException if income is null
+	 * @throws IllegalArgumentException if id or amount is missing/invalid
+	 */
 	public boolean updateIncome(Map<String, Object> income) {
 		Objects.requireNonNull(income, "Income map must not be null");
 		if (!income.containsKey("id") || !income.containsKey("amount")) {
@@ -53,6 +73,12 @@ public class IncomeRepository {
 		return rows > 0;
 	}
 
+	/**
+	 * Deletes an income record by id.
+	 *
+	 * @param id the id of the income to delete
+	 * @return true if the record was deleted, false otherwise
+	 */
 	public boolean deleteIncome(int id) {
 		String sql = "DELETE FROM income WHERE id = ?";
 		int rows = jdbcTemplate.update(sql, id);
