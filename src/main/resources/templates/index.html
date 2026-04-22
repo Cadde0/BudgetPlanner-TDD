@@ -80,6 +80,35 @@
         <tbody></tbody>
       </table>
       <div id="expense-category-result" style="margin-top: 1rem"></div>
+
+      <hr style="margin: 2rem 0" />
+
+      <h3>Manage Categories</h3>
+      <h4>Add New Category</h4>
+      <div style="margin-top: 1rem">
+        <label for="category-add-name">New Category Name:</label>
+        <input type="text" id="category-add-name" />
+        <label for="category-add-limit">Category Limit:</label>
+        <input type="number" id="category-add-limit" min="0" />
+        <button type="button" id="add-category-btn">Add Category</button>
+      </div>
+
+      <h4 style="margin-top: 1.5rem">Edit Existing Category</h4>
+      <div style="margin-top: 1rem">
+        <label for="category-manage-select">Select Existing Category:</label>
+        <select id="category-manage-select"></select>
+      </div>
+
+      <div style="margin-top: 1rem">
+        <label for="category-update-name">New Name for Selected:</label>
+        <input type="text" id="category-update-name" />
+        <label for="category-update-limit">New Limit for Selected:</label>
+        <input type="number" id="category-update-limit" min="0" />
+        <button type="button" id="update-category-btn">Update Selected</button>
+        <button type="button" id="delete-category-btn">Delete Selected</button>
+      </div>
+
+      <div id="category-result" style="margin-top: 1rem"></div>
     </main>
     <script>
       const form = document.getElementById("income-form");
@@ -94,6 +123,22 @@
         "expense-category-result",
       );
       const expensesTableBody = document.querySelector("#expenses-table tbody");
+      const categoryAddNameInput = document.getElementById("category-add-name");
+      const categoryAddLimitInput =
+        document.getElementById("category-add-limit");
+      const categoryManageSelect = document.getElementById(
+        "category-manage-select",
+      );
+      const categoryUpdateNameInput = document.getElementById(
+        "category-update-name",
+      );
+      const categoryUpdateLimitInput = document.getElementById(
+        "category-update-limit",
+      );
+      const addCategoryBtn = document.getElementById("add-category-btn");
+      const updateCategoryBtn = document.getElementById("update-category-btn");
+      const deleteCategoryBtn = document.getElementById("delete-category-btn");
+      const categoryResultDiv = document.getElementById("category-result");
       let categories = [];
 
       async function fetchIncomes() {
@@ -103,8 +148,66 @@
       }
 
       async function fetchCategories() {
-        const resp = await fetch("/api/expenses/categories");
+        const resp = await fetch("/api/categories");
         categories = await resp.json();
+        renderManageCategoryOptions();
+      }
+
+      function renderManageCategoryOptions() {
+        const previousValue = categoryManageSelect.value;
+        categoryManageSelect.innerHTML = "";
+
+        if (!categories.length) {
+          categoryManageSelect.innerHTML =
+            '<option value="">No categories available</option>';
+          return;
+        }
+
+        const options = categories
+          .map((category) => {
+            const label = getCategoryLabel(category);
+            return `<option value="${category.id}">${label}</option>`;
+          })
+          .join("");
+
+        categoryManageSelect.innerHTML = options;
+        if (previousValue) {
+          categoryManageSelect.value = previousValue;
+        }
+
+        prefillEditFieldsForSelectedCategory();
+      }
+
+      function prefillEditFieldsForSelectedCategory() {
+        const id = parseInt(categoryManageSelect.value, 10);
+        const selectedCategory = categories.find(
+          (category) => Number(category.id) === Number(id),
+        );
+
+        if (!selectedCategory) {
+          categoryUpdateNameInput.value = "";
+          categoryUpdateLimitInput.value = "";
+          return;
+        }
+
+        categoryUpdateNameInput.value = selectedCategory.name || "";
+        if (selectedCategory.category_limit == null) {
+          categoryUpdateLimitInput.value = "";
+        } else {
+          categoryUpdateLimitInput.value = selectedCategory.category_limit;
+        }
+      }
+
+      async function extractErrorMessage(response, fallbackMessage) {
+        try {
+          const payload = await response.json();
+          if (payload && payload.message) {
+            return payload.message;
+          }
+        } catch (error) {
+          // Ignore parse failures and use fallback message.
+        }
+        return fallbackMessage;
       }
 
       async function fetchExpenses() {
@@ -224,6 +327,141 @@
         expenseCategoryResultDiv.textContent = `Expense #${expenseId} assigned to category #${categoryId}.`;
         await fetchExpenses();
       };
+
+      addCategoryBtn.addEventListener("click", async () => {
+        const name = categoryAddNameInput.value.trim();
+        const limitValue = categoryAddLimitInput.value;
+        const parsedLimit =
+          limitValue === "" ? null : parseFloat(categoryAddLimitInput.value);
+
+        if (!name) {
+          categoryResultDiv.textContent = "Please enter a category name.";
+          return;
+        }
+
+        if (
+          parsedLimit !== null &&
+          (Number.isNaN(parsedLimit) || parsedLimit < 0)
+        ) {
+          categoryResultDiv.textContent =
+            "Please enter a valid category limit (0 or greater).";
+          return;
+        }
+
+        const payload = { name };
+        if (parsedLimit !== null) {
+          payload.category_limit = parsedLimit;
+        }
+
+        const response = await fetch("/api/categories", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+          categoryResultDiv.textContent = await extractErrorMessage(
+            response,
+            "Could not add category.",
+          );
+          return;
+        }
+
+        const id = await response.json();
+        categoryResultDiv.textContent = `Category added with id ${id}.`;
+        categoryAddNameInput.value = "";
+        categoryAddLimitInput.value = "";
+        await fetchCategories();
+        await fetchExpenses();
+      });
+
+      updateCategoryBtn.addEventListener("click", async () => {
+        const id = parseInt(categoryManageSelect.value, 10);
+        const nameInput = categoryUpdateNameInput.value.trim();
+        const limitValue = categoryUpdateLimitInput.value;
+        const parsedLimit =
+          limitValue === "" ? null : parseFloat(categoryUpdateLimitInput.value);
+        const name = nameInput;
+
+        if (!id || id <= 0) {
+          categoryResultDiv.textContent = "Please choose a valid category.";
+          return;
+        }
+
+        if (!name) {
+          categoryResultDiv.textContent = "Please enter a new category name.";
+          return;
+        }
+
+        if (
+          parsedLimit !== null &&
+          (Number.isNaN(parsedLimit) || parsedLimit < 0)
+        ) {
+          categoryResultDiv.textContent =
+            "Please enter a valid category limit (0 or greater).";
+          return;
+        }
+
+        const payload = { name };
+        if (parsedLimit !== null) {
+          payload.category_limit = parsedLimit;
+        }
+
+        const response = await fetch(`/api/categories/${id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+          categoryResultDiv.textContent = await extractErrorMessage(
+            response,
+            "Could not update category.",
+          );
+          return;
+        }
+
+        categoryResultDiv.textContent = "Category updated.";
+        categoryUpdateNameInput.value = "";
+        categoryUpdateLimitInput.value = "";
+        await fetchCategories();
+        await fetchExpenses();
+      });
+
+      deleteCategoryBtn.addEventListener("click", async () => {
+        const id = parseInt(categoryManageSelect.value, 10);
+
+        if (!id || id <= 0) {
+          categoryResultDiv.textContent = "Please choose a valid category.";
+          return;
+        }
+
+        if (!confirm("Delete selected category?")) {
+          return;
+        }
+
+        const response = await fetch(`/api/categories/${id}`, {
+          method: "DELETE",
+        });
+
+        if (!response.ok) {
+          categoryResultDiv.textContent = await extractErrorMessage(
+            response,
+            "Could not delete category.",
+          );
+          return;
+        }
+
+        categoryResultDiv.textContent = "Category deleted.";
+        categoryUpdateNameInput.value = "";
+        categoryUpdateLimitInput.value = "";
+        await fetchCategories();
+        await fetchExpenses();
+      });
+
+      categoryManageSelect.addEventListener("change", () => {
+        prefillEditFieldsForSelectedCategory();
+      });
 
       form.addEventListener("submit", async (e) => {
         e.preventDefault();
