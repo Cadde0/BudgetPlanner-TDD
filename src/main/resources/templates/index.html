@@ -64,18 +64,6 @@
 
       <hr style="margin: 2rem 0" />
 
-      <h2>Assign Category To Expense</h2>
-      <form id="expense-category-form">
-        <label for="expense-id">Expense ID:</label>
-        <input type="number" id="expense-id" min="1" required />
-
-        <label for="category-id" style="margin-left: 1rem">Category ID:</label>
-        <input type="number" id="category-id" min="1" required />
-
-        <button type="submit">Set Category</button>
-      </form>
-      <div id="expense-category-result" style="margin-top: 1rem"></div>
-
       <h3>All Expenses</h3>
       <table
         id="expenses-table"
@@ -91,6 +79,7 @@
         </thead>
         <tbody></tbody>
       </table>
+      <div id="expense-category-result" style="margin-top: 1rem"></div>
     </main>
     <script>
       const form = document.getElementById("income-form");
@@ -101,11 +90,6 @@
       const cancelBtn = document.getElementById("cancel-btn");
       const addBtn = document.getElementById("add-btn");
       const tableBody = document.querySelector("#income-table tbody");
-      const expenseCategoryForm = document.getElementById(
-        "expense-category-form",
-      );
-      const expenseIdInput = document.getElementById("expense-id");
-      const categoryIdInput = document.getElementById("category-id");
       const expenseCategoryResultDiv = document.getElementById(
         "expense-category-result",
       );
@@ -154,7 +138,7 @@
                   ? "selected"
                   : "";
               const label = getCategoryLabel(category);
-              return `<option value="${category.id}" ${selected}>${label} (#${category.id})</option>`;
+              return `<option value="${category.id}" ${selected}>${label} </option>`;
             })
             .join("");
 
@@ -293,43 +277,6 @@
         addBtn.style.display = "inline-block";
         updateBtn.style.display = "none";
         cancelBtn.style.display = "none";
-      });
-
-      expenseCategoryForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
-
-        const expenseId = parseInt(expenseIdInput.value, 10);
-        const categoryId = parseInt(categoryIdInput.value, 10);
-
-        if (!expenseId || expenseId <= 0 || !categoryId || categoryId <= 0) {
-          expenseCategoryResultDiv.textContent =
-            "Expense ID and Category ID must be positive.";
-          return;
-        }
-
-        try {
-          const resp = await fetch(
-            `/api/expenses/${expenseId}/category/${categoryId}`,
-            {
-              method: "PUT",
-            },
-          );
-
-          if (!resp.ok) {
-            expenseCategoryResultDiv.textContent =
-              "Failed to set category for expense.";
-            return;
-          }
-
-          const result = await resp.json();
-          expenseCategoryResultDiv.textContent = result
-            ? `Expense #${expenseId} assigned to category #${categoryId}.`
-            : "Failed to set category for expense.";
-          await fetchExpenses();
-        } catch (error) {
-          expenseCategoryResultDiv.textContent =
-            "Error while setting expense category.";
-        }
       });
 
       async function initializePage() {
