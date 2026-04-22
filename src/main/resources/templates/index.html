@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Budget Planner</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f7f7f7;
+        }
+        header {
+            background: #1976d2;
+            color: #fff;
+            padding: 2rem 0;
+            text-align: center;
+            font-size: 2.5rem;
+            letter-spacing: 2px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+    </style>
+</head>
+<body>
+    <header>Budget Planner</header>
+        <main style="max-width: 600px; margin: 2rem auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); padding: 2rem;">
+            <h2>Manage Income</h2>
+            <form id="income-form">
+                <input type="hidden" id="income-id">
+                <label for="income-amount">Amount:</label>
+                <input type="number" id="income-amount" min="1" required>
+                <button type="submit" id="add-btn">Add Income</button>
+                <button type="button" id="update-btn" style="display:none;">Update Income</button>
+                <button type="button" id="cancel-btn" style="display:none;">Cancel</button>
+            </form>
+            <div id="income-result" style="margin-top:1rem;"></div>
+            <h3>All Incomes</h3>
+            <table id="income-table" border="1" style="width:100%;margin-top:1rem;text-align:center;">
+                <thead><tr><th>ID</th><th>Amount</th><th>Actions</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </main>
+        <script>
+            const form = document.getElementById('income-form');
+            const amountInput = document.getElementById('income-amount');
+            const idInput = document.getElementById('income-id');
+            const resultDiv = document.getElementById('income-result');
+            const updateBtn = document.getElementById('update-btn');
+            const cancelBtn = document.getElementById('cancel-btn');
+            const addBtn = document.getElementById('add-btn');
+            const tableBody = document.querySelector('#income-table tbody');
+
+            async function fetchIncomes() {
+                const resp = await fetch('/api/income');
+                const incomes = await resp.json();
+                renderIncomes(incomes);
+            }
+
+            function renderIncomes(incomes) {
+                tableBody.innerHTML = '';
+                incomes.forEach(income => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `<td>${income.id}</td><td>${income.amount}</td>
+                        <td>
+                            <button onclick="editIncome(${income.id}, ${income.amount})">Edit</button>
+                            <button onclick="deleteIncome(${income.id})">Delete</button>
+                        </td>`;
+                    tableBody.appendChild(tr);
+                });
+            }
+
+            window.editIncome = (id, amount) => {
+                idInput.value = id;
+                amountInput.value = amount;
+                addBtn.style.display = 'none';
+                updateBtn.style.display = 'inline-block';
+                cancelBtn.style.display = 'inline-block';
+            };
+
+            window.deleteIncome = async (id) => {
+                if (!confirm('Delete this income?')) return;
+                const resp = await fetch(`/api/income/${id}`, { method: 'DELETE' });
+                const deleted = await resp.json();
+                resultDiv.textContent = deleted ? `Income #${id} deleted.` : `Delete failed.`;
+                if (deleted) {
+                    if (idInput.value == id) {
+                        idInput.value = '';
+                        amountInput.value = '';
+                        addBtn.style.display = 'inline-block';
+                        updateBtn.style.display = 'none';
+                        cancelBtn.style.display = 'none';
+                    }
+                    fetchIncomes();
+                }
+            };
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const amount = parseFloat(amountInput.value);
+                if (!amount || amount <= 0) {
+                    resultDiv.textContent = 'Amount must be positive.';
+                    return;
+                }
+                const id = idInput.value;
+                if (id) {
+                    // Update
+                    const resp = await fetch(`/api/income/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ amount })
+                    });
+                    const updated = await resp.json();
+                    resultDiv.textContent = updated ? `Income #${id} updated.` : `Update failed.`;
+                    if (updated) {
+                        idInput.value = '';
+                        amountInput.value = '';
+                        addBtn.style.display = 'inline-block';
+                        updateBtn.style.display = 'none';
+                        cancelBtn.style.display = 'none';
+                        fetchIncomes();
+                    }
+                } else {
+                    // Add
+                    const resp = await fetch('/api/income', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ amount })
+                    });
+                    const newId = await resp.json();
+                    resultDiv.textContent = `Income added with id ${newId}.`;
+                    idInput.value = '';
+                    amountInput.value = '';
+                    fetchIncomes();
+                }
+            });
+
+            updateBtn.addEventListener('click', () => {
+                form.dispatchEvent(new Event('submit'));
+            });
+
+            cancelBtn.addEventListener('click', () => {
+                idInput.value = '';
+                amountInput.value = '';
+                addBtn.style.display = 'inline-block';
+                updateBtn.style.display = 'none';
+                cancelBtn.style.display = 'none';
+            });
+
+            fetchIncomes();
+        </script>
+</body>
+</html>

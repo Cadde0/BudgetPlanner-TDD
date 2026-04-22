@@ -1,28 +1,29 @@
 package application;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
-
+import repository.BudgetRepository;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class BudgetService {
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
+    private final BudgetRepository budgetRepository;
+
+    public BudgetService(BudgetRepository budgetRepository) {
+        this.budgetRepository = budgetRepository;
+    }
 
     /**
-     * Retrieves all rows from the specified table.
-     * @param tableName the name of the table to query
-     * @return a list of rows (each row is a Map<String, Object>)
-     * @throws IllegalArgumentException if tableName is null or empty
-     * @throws RuntimeException if the query fails (e.g., table does not exist)
+     * Retrieves all rows from the specified table using the repository.
      */
-    public List<?> getAllFromTable(String tableName) {
-        if (tableName == null || tableName.trim().isEmpty()) {
-            throw new IllegalArgumentException("Table name must not be null or empty");
-        }
-        String sql = "SELECT * FROM " + tableName;
-        return jdbcTemplate.queryForList(sql);
+    public List<Map<String, Object>> getAllFromTable(String tableName) {
+        return budgetRepository.queryAllRows(tableName);
+    }
+
+    /**
+     * Retrieves a single row by ID from the specified table using the repository.
+     */
+    public Map<String, Object> getById(String tableName, int id) {
+        return budgetRepository.queryById(tableName, id);
     }
 }
