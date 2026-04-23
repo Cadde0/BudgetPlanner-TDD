@@ -45,6 +45,7 @@ class ExpensesServiceUnitTest {
     @Test
     void testAddExpense() {
         Map<String, Object> expense = expenseWithAmountAndDescription(250, "Transport");
+        expense.put("categoryId", 4);
 
         when(expensesRepository.addExpense(anyMap())).thenReturn(1);
 
@@ -57,6 +58,7 @@ class ExpensesServiceUnitTest {
     @Test
     void testAddExpenseWithEmptyDescription() {
         Map<String, Object> expense = expenseWithAmountAndDescription(250, "");
+        expense.put("categoryId", 5);
 
         when(expensesRepository.addExpense(anyMap())).thenReturn(2);
 
@@ -69,19 +71,36 @@ class ExpensesServiceUnitTest {
     @Test
     void testAddExpenseThrowsWhenAmountMissing() {
         Map<String, Object> expense = new HashMap<>();
-        doThrow(new IllegalArgumentException("Expense must contain 'amount'"))
-                .when(expensesRepository).addExpense(expense);
+        expense.put("categoryId", 2);
 
         assertThrows(IllegalArgumentException.class, () -> expensesService.addExpense(expense));
+        verifyNoInteractions(expensesRepository);
     }
 
     @Test
     void testAddExpenseThrowsWhenAmountInvalid() {
         Map<String, Object> expense = expenseWithAmount(0);
-        doThrow(new IllegalArgumentException("Expense amount must be positive"))
-                .when(expensesRepository).addExpense(expense);
+        expense.put("categoryId", 2);
 
         assertThrows(IllegalArgumentException.class, () -> expensesService.addExpense(expense));
+        verifyNoInteractions(expensesRepository);
+    }
+
+    @Test
+    void testAddExpenseThrowsWhenCategoryMissing() {
+        Map<String, Object> expense = expenseWithAmountAndDescription(120, "Parking");
+
+        assertThrows(IllegalArgumentException.class, () -> expensesService.addExpense(expense));
+        verifyNoInteractions(expensesRepository);
+    }
+
+    @Test
+    void testAddExpenseThrowsWhenCategoryInvalid() {
+        Map<String, Object> expense = expenseWithAmountAndDescription(120, "Parking");
+        expense.put("categoryId", 0);
+
+        assertThrows(IllegalArgumentException.class, () -> expensesService.addExpense(expense));
+        verifyNoInteractions(expensesRepository);
     }
 
     @Test

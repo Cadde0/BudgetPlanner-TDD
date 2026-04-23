@@ -18,7 +18,7 @@ public class ExpensesRepository {
     private static final String EXPENSE_EXISTS_SQL = "SELECT COUNT(*) FROM expenses WHERE id = ?";
     private static final String CATEGORY_EXISTS_SQL = "SELECT COUNT(*) FROM category WHERE id = ?";
     private static final String UPDATE_CATEGORY_SQL = "UPDATE expenses SET category_id = ? WHERE id = ?";
-    private static final String INSERT_EXPENSE_SQL = "INSERT INTO expenses (amount, description) VALUES (?, ?)";
+    private static final String INSERT_EXPENSE_SQL = "INSERT INTO expenses (amount, description, category_id) VALUES (?, ?, ?)";
     private static final String UPDATE_EXPENSE_SQL = "UPDATE expenses SET amount = ?, description = ? WHERE id = ?";
 
     private final JdbcTemplate jdbcTemplate;
@@ -37,12 +37,15 @@ public class ExpensesRepository {
     public int addExpense(Map<String, Object> expense) {
         Number amount = extractAndValidateAmount(expense);
         String description = extractDescription(expense);
+        int categoryId = extractAndValidateCategoryId(expense);
+        assertExists(categoryExists(categoryId), "Category ID", categoryId);
 
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(connection -> {
             PreparedStatement ps = connection.prepareStatement(INSERT_EXPENSE_SQL, new String[] { "id" });
             ps.setObject(1, amount);
             ps.setString(2, description);
+            ps.setInt(3, categoryId);
             return ps;
         }, keyHolder);
 
@@ -92,6 +95,19 @@ public class ExpensesRepository {
             throw new IllegalArgumentException("Expense id must be positive");
         }
         return id;
+    }
+
+    private int extractAndValidateCategoryId(Map<String, Object> expense) {
+        Objects.requireNonNull(expense, "Expense map must not be null");
+        if (!expense.containsKey("categoryId")) {
+            throw new IllegalArgumentException("Expense must contain 'categoryId'");
+        }
+
+        Object categoryValue = expense.get("categoryId");
+        if (!(categoryValue instanceof Number categoryNumber) || categoryNumber.intValue() <= 0) {
+            throw new IllegalArgumentException("Expense categoryId must be positive");
+        }
+        return categoryNumber.intValue();
     }
 
     private int requireGeneratedId(KeyHolder keyHolder) {

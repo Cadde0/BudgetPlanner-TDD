@@ -77,6 +77,7 @@ class ExpensesControllerTest {
     @Test
     void testAddExpense() {
         Map<String, Object> expense = expenseWithAmountAndDescription(300, "Internet");
+        expense.put("categoryId", 2);
         when(expensesService.addExpense(expense)).thenReturn(10);
 
         ResponseEntity<Integer> response = expensesController.addExpense(expense);
@@ -89,6 +90,7 @@ class ExpensesControllerTest {
     @Test
     void testAddExpenseWithEmptyDescription() {
         Map<String, Object> expense = expenseWithAmountAndDescription(300, "");
+        expense.put("categoryId", 3);
         when(expensesService.addExpense(expense)).thenReturn(11);
 
         ResponseEntity<Integer> response = expensesController.addExpense(expense);
@@ -101,6 +103,7 @@ class ExpensesControllerTest {
     @Test
     void testAddExpenseWithoutDescription() {
         Map<String, Object> expense = expenseWithAmount(300);
+        expense.put("categoryId", 4);
         when(expensesService.addExpense(expense)).thenReturn(12);
 
         ResponseEntity<Integer> response = expensesController.addExpense(expense);
@@ -113,7 +116,18 @@ class ExpensesControllerTest {
     @Test
     void testAddExpenseThrowsWhenAmountMissing() {
         Map<String, Object> expense = new HashMap<>();
+        expense.put("categoryId", 2);
         doThrow(new IllegalArgumentException("Expense must contain 'amount'"))
+                .when(expensesService).addExpense(expense);
+
+        assertThrows(IllegalArgumentException.class,
+                () -> expensesController.addExpense(expense));
+    }
+
+    @Test
+    void testAddExpenseThrowsWhenCategoryMissing() {
+        Map<String, Object> expense = expenseWithAmountAndDescription(190, "Train");
+        doThrow(new IllegalArgumentException("Expense must contain 'categoryId'"))
                 .when(expensesService).addExpense(expense);
 
         assertThrows(IllegalArgumentException.class,

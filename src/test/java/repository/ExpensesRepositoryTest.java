@@ -4,8 +4,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -16,10 +20,17 @@ import presentation.BudgetPlannerApplication;
  * Tests use the real database to verify category management.
  */
 @SpringBootTest(classes = BudgetPlannerApplication.class)
+@Transactional
 class ExpensesRepositoryTest {
 
     @Autowired
     private ExpensesRepository expensesRepository;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    private final List<Integer> createdExpenseIds = new ArrayList<>();
+    private final List<Integer> createdCategoryIds = new ArrayList<>();
 
     private Map<String, Object> expenseWithAmount(Number amount) {
         Map<String, Object> expense = new HashMap<>();
@@ -33,31 +44,96 @@ class ExpensesRepositoryTest {
         return expense;
     }
 
+    private Map<String, Object> expenseWithAmountDescriptionAndCategory(Number amount, String description, int categoryId) {
+        Map<String, Object> expense = expenseWithAmountAndDescription(amount, description);
+        expense.put("categoryId", categoryId);
+        return expense;
+    }
+
+    @org.junit.jupiter.api.AfterEach
+    void tearDown() {
+        for (Integer id : createdExpenseIds) {
+            jdbcTemplate.update("DELETE FROM expenses WHERE id = ?", id);
+        }
+        createdExpenseIds.clear();
+
+        for (Integer id : createdCategoryIds) {
+            jdbcTemplate.update("DELETE FROM category WHERE id = ?", id);
+        }
+        createdCategoryIds.clear();
+    }
+
+    private int createTempCategory() {
+        String name = "TDD Expense Category " + System.nanoTime();
+        jdbcTemplate.update("INSERT INTO category (name) VALUES (?)", name);
+        Integer id = jdbcTemplate.queryForObject(
+                "SELECT id FROM category WHERE name = ? ORDER BY id DESC LIMIT 1",
+                Integer.class,
+                name);
+        if (id == null) {
+            throw new IllegalStateException("Failed to create temporary category");
+        }
+        createdCategoryIds.add(id);
+        return id;
+    }
+
     @Test
     void testAddExpense() {
-        Map<String, Object> expense = expenseWithAmountAndDescription(300, "Groceries");
+        int categoryId = createTempCategory();
+        Map<String, Object> expense = expenseWithAmountDescriptionAndCategory(300, "Groceries", categoryId);
 
         int id = expensesRepository.addExpense(expense);
+        createdExpenseIds.add(id);
 
         assertTrue(id > 0);
     }
 
     @Test
     void testAddExpenseWithEmptyDescription() {
-        Map<String, Object> expense = expenseWithAmountAndDescription(120, "");
+        int categoryId = createTempCategory();
+        Map<String, Object> expense = expenseWithAmountDescriptionAndCategory(120, "", categoryId);
 
         int id = expensesRepository.addExpense(expense);
+        createdExpenseIds.add(id);
 
         assertTrue(id > 0);
     }
 
     @Test
     void testAddExpenseWithoutDescription() {
+        int categoryId = createTempCategory();
         Map<String, Object> expense = expenseWithAmount(90);
+        expense.put("categoryId", categoryId);
 
         int id = expensesRepository.addExpense(expense);
+        createdExpenseIds.add(id);
 
         assertTrue(id > 0);
+    }
+
+    @Test
+    void testAddExpenseWithCategoryPersistsCategoryId() {
+        int categoryId = createTempCategory();
+        Map<String, Object> expense = expenseWithAmountDescriptionAndCategory(410, "Fuel", categoryId);
+
+        int expenseId = expensesRepository.addExpense(expense);
+        createdExpenseIds.add(expenseId);
+
+        Integer persistedCategoryId = jdbcTemplate.queryForObject(
+                "SELECT category_id FROM expenses WHERE id = ?",
+                Integer.class,
+                expenseId);
+
+        assertEquals(categoryId, persistedCategoryId);
+    }
+
+    @Test
+    void testAddExpenseWithMissingCategoryThrows() {
+        Map<String, Object> expense = expenseWithAmountAndDescription(210, "Bus pass");
+
+        Exception ex = assertThrows(InvalidDataAccessApiUsageException.class,
+                () -> expensesRepository.addExpense(expense));
+        assertTrue(ex.getCause() instanceof IllegalArgumentException);
     }
 
     @Test
@@ -94,7 +170,9 @@ class ExpensesRepositoryTest {
 
     @Test
     void testUpdateExpense() {
-        int id = expensesRepository.addExpense(expenseWithAmountAndDescription(200, "Lunch"));
+        int categoryId = createTempCategory();
+        int id = expensesRepository.addExpense(expenseWithAmountDescriptionAndCategory(200, "Lunch", categoryId));
+        createdExpenseIds.add(id);
         Map<String, Object> expense = expenseWithAmountAndDescription(260, "Dinner");
         expense.put("id", id);
 
@@ -105,7 +183,9 @@ class ExpensesRepositoryTest {
 
     @Test
     void testUpdateExpenseWithEmptyDescription() {
-        int id = expensesRepository.addExpense(expenseWithAmountAndDescription(120, "Taxi"));
+        int categoryId = createTempCategory();
+        int id = expensesRepository.addExpense(expenseWithAmountDescriptionAndCategory(120, "Taxi", categoryId));
+        createdExpenseIds.add(id);
         Map<String, Object> expense = expenseWithAmountAndDescription(140, "");
         expense.put("id", id);
 
@@ -130,7 +210,9 @@ class ExpensesRepositoryTest {
 
     @Test
     void testUpdateExpenseWithMissingAmountThrows() {
-        int id = expensesRepository.addExpense(expenseWithAmountAndDescription(110, "Snacks"));
+        int categoryId = createTempCategory();
+        int id = expensesRepository.addExpense(expenseWithAmountDescriptionAndCategory(110, "Snacks", categoryId));
+        createdExpenseIds.add(id);
         Map<String, Object> expense = new HashMap<>();
         expense.put("id", id);
 
@@ -141,7 +223,9 @@ class ExpensesRepositoryTest {
 
     @Test
     void testUpdateExpenseWithZeroAmountThrows() {
-        int id = expensesRepository.addExpense(expenseWithAmountAndDescription(150, "Bills"));
+        int categoryId = createTempCategory();
+        int id = expensesRepository.addExpense(expenseWithAmountDescriptionAndCategory(150, "Bills", categoryId));
+        createdExpenseIds.add(id);
         Map<String, Object> expense = expenseWithAmountAndDescription(0, "Bills");
         expense.put("id", id);
 

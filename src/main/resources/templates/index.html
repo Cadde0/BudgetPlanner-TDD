@@ -267,6 +267,8 @@
         <input type="number" id="expense-amount" min="1" required />
         <label for="expense-description">Description (optional):</label>
         <input type="text" id="expense-description" />
+        <label for="expense-category">Category:</label>
+        <select id="expense-category" required></select>
         <button type="submit" id="expense-add-btn">Add Expense</button>
         <button
           type="button"
@@ -354,6 +356,7 @@
       const expenseDescriptionInput = document.getElementById(
         "expense-description",
       );
+      const expenseCategoryInput = document.getElementById("expense-category");
       const expenseAddBtn = document.getElementById("expense-add-btn");
       const expenseUpdateBtn = document.getElementById("expense-update-btn");
       const expenseCancelBtn = document.getElementById("expense-cancel-btn");
@@ -387,6 +390,27 @@
         const resp = await fetch("/api/categories");
         categories = await resp.json();
         renderManageCategoryOptions();
+        renderExpenseCategoryOptions();
+      }
+
+      function renderExpenseCategoryOptions() {
+        const previousValue = expenseCategoryInput.value;
+        if (!categories.length) {
+          expenseCategoryInput.innerHTML =
+            '<option value="">No categories available</option>';
+          return;
+        }
+
+        expenseCategoryInput.innerHTML = categories
+          .map((category) => {
+            const label = getCategoryLabel(category);
+            return `<option value="${category.id}">${label}</option>`;
+          })
+          .join("");
+
+        if (previousValue) {
+          expenseCategoryInput.value = previousValue;
+        }
       }
 
       function renderManageCategoryOptions() {
@@ -525,6 +549,11 @@
         expenseIdInput.value = "";
         expenseAmountInput.value = "";
         expenseDescriptionInput.value = "";
+        if (categories.length > 0) {
+          expenseCategoryInput.value = String(categories[0].id);
+        } else {
+          expenseCategoryInput.value = "";
+        }
         setExpenseFormMode(false);
       }
 
@@ -598,6 +627,12 @@
           return;
         }
 
+        const categoryId = parseInt(expenseCategoryInput.value, 10);
+        if (!categoryId || categoryId <= 0) {
+          expenseResultDiv.textContent = "Please select a valid category.";
+          return;
+        }
+
         const description = expenseDescriptionInput.value || "";
         const expenseId = expenseIdInput.value;
         const response = expenseId
@@ -609,7 +644,7 @@
           : await fetch("/api/expenses", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ amount, description }),
+              body: JSON.stringify({ amount, description, categoryId }),
             });
 
         if (!response.ok) {
