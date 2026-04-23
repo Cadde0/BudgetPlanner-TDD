@@ -262,11 +262,26 @@
 
       <h2>Add Expense</h2>
       <form id="expense-form">
+        <input type="hidden" id="expense-id" />
         <label for="expense-amount">Amount:</label>
         <input type="number" id="expense-amount" min="1" required />
         <label for="expense-description">Description (optional):</label>
         <input type="text" id="expense-description" />
-        <button type="submit">Add Expense</button>
+        <button type="submit" id="expense-add-btn">Add Expense</button>
+        <button
+          type="button"
+          id="expense-update-btn"
+          class="btn-secondary"
+          style="display: none">
+          Update Expense
+        </button>
+        <button
+          type="button"
+          id="expense-cancel-btn"
+          class="btn-secondary"
+          style="display: none">
+          Cancel
+        </button>
       </form>
       <div id="expense-result" class="feedback"></div>
 
@@ -334,10 +349,14 @@
         "expense-category-result",
       );
       const expenseForm = document.getElementById("expense-form");
+      const expenseIdInput = document.getElementById("expense-id");
       const expenseAmountInput = document.getElementById("expense-amount");
       const expenseDescriptionInput = document.getElementById(
         "expense-description",
       );
+      const expenseAddBtn = document.getElementById("expense-add-btn");
+      const expenseUpdateBtn = document.getElementById("expense-update-btn");
+      const expenseCancelBtn = document.getElementById("expense-cancel-btn");
       const expenseResultDiv = document.getElementById("expense-result");
       const expensesTableBody = document.querySelector("#expenses-table tbody");
       const categoryAddNameInput = document.getElementById("category-add-name");
@@ -465,12 +484,17 @@
           const currentCategory = expense.category_id
             ? getCategoryNameById(expense.category_id)
             : "-";
+          const safeDescription = String(expense.description ?? "").replaceAll(
+            "'",
+            "\\'",
+          );
           tr.innerHTML = `
             <td>${expense.amount ?? "-"}</td>
             <td>${expense.description ?? ""}</td>
             <td>${currentCategory}</td>
             <td>
               <select id="${selectId}">${options}</select>
+              <button class="btn-secondary" onclick="editExpense(${expense.id}, ${expense.amount ?? 0}, '${safeDescription}')">Edit</button>
               <button class="btn-secondary" onclick="assignCategoryFromRow(${expense.id}, '${selectId}')">Set</button>
             </td>`;
 
@@ -489,6 +513,19 @@
                         </td>`;
           tableBody.appendChild(tr);
         });
+      }
+
+      function setExpenseFormMode(isEditing) {
+        expenseAddBtn.style.display = isEditing ? "none" : "inline-block";
+        expenseUpdateBtn.style.display = isEditing ? "inline-block" : "none";
+        expenseCancelBtn.style.display = isEditing ? "inline-block" : "none";
+      }
+
+      function resetExpenseForm() {
+        expenseIdInput.value = "";
+        expenseAmountInput.value = "";
+        expenseDescriptionInput.value = "";
+        setExpenseFormMode(false);
       }
 
       window.editIncome = (id, amount) => {
@@ -545,6 +582,13 @@
         await fetchExpenses();
       };
 
+      window.editExpense = (id, amount, description) => {
+        expenseIdInput.value = id;
+        expenseAmountInput.value = amount;
+        expenseDescriptionInput.value = description || "";
+        setExpenseFormMode(true);
+      };
+
       expenseForm.addEventListener("submit", async (e) => {
         e.preventDefault();
 
@@ -555,22 +599,46 @@
         }
 
         const description = expenseDescriptionInput.value || "";
-        const response = await fetch("/api/expenses", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ amount, description }),
-        });
+        const expenseId = expenseIdInput.value;
+        const response = expenseId
+          ? await fetch(`/api/expenses/${expenseId}`, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ amount, description }),
+            })
+          : await fetch("/api/expenses", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ amount, description }),
+            });
 
         if (!response.ok) {
-          expenseResultDiv.textContent = "Could not add expense.";
+          expenseResultDiv.textContent = expenseId
+            ? "Could not update expense."
+            : "Could not add expense.";
           return;
         }
 
-        const id = await response.json();
-        expenseResultDiv.textContent = `Expense added with id ${id}.`;
-        expenseAmountInput.value = "";
-        expenseDescriptionInput.value = "";
+        if (expenseId) {
+          const updated = await response.json();
+          expenseResultDiv.textContent = updated
+            ? `Expense #${expenseId} updated.`
+            : "Update failed.";
+        } else {
+          const id = await response.json();
+          expenseResultDiv.textContent = `Expense added with id ${id}.`;
+        }
+
+        resetExpenseForm();
         await fetchExpenses();
+      });
+
+      expenseUpdateBtn.addEventListener("click", () => {
+        expenseForm.dispatchEvent(new Event("submit"));
+      });
+
+      expenseCancelBtn.addEventListener("click", () => {
+        resetExpenseForm();
       });
 
       addCategoryBtn.addEventListener("click", async () => {

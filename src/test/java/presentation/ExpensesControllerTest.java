@@ -121,6 +121,29 @@ class ExpensesControllerTest {
     }
 
     @Test
+    void testUpdateExpense() {
+        Map<String, Object> expense = expenseWithAmountAndDescription(350, "Updated description");
+        when(expensesService.updateExpense(expense)).thenReturn(true);
+
+        ResponseEntity<Boolean> response = expensesController.updateExpense(8, expense);
+
+        assertEquals(200, response.getStatusCode().value());
+        assertEquals(true, response.getBody());
+        assertEquals(8, expense.get("id"));
+        verify(expensesService).updateExpense(expense);
+    }
+
+    @Test
+    void testUpdateExpenseThrowsWhenInvalidId() {
+        Map<String, Object> expense = expenseWithAmountAndDescription(350, "Updated description");
+        doThrow(new IllegalArgumentException("Expense ID must be positive"))
+                .when(expensesService).updateExpense(expense);
+
+        assertThrows(IllegalArgumentException.class,
+                () -> expensesController.updateExpense(0, expense));
+    }
+
+    @Test
     void testSetCategoryForExpense() {
         ResponseEntity<Boolean> response = expensesController.setCategory(6, 1);
 

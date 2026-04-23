@@ -42,6 +42,13 @@ public class ExpensesController {
         return ResponseEntity.ok(id);
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<Boolean> updateExpense(@PathVariable int id, @RequestBody Map<String, Object> expense) {
+        expense.put("id", id);
+        boolean updated = expensesService.updateExpense(expense);
+        return ResponseEntity.ok(updated);
+    }
+
     @PutMapping("/{expenseId}/category/{categoryId}")
     public ResponseEntity<Boolean> setCategory(@PathVariable int expenseId, @PathVariable int categoryId) {
         expensesService.setCategory(expenseId, categoryId);

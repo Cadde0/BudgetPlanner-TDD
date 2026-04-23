@@ -25,6 +25,9 @@ class FrontendControllerTest {
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("id=\"expense-form\"")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("id=\"expense-amount\"")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("id=\"expense-description\"")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("id=\"expense-id\"")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("id=\"expense-update-btn\"")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("id=\"expense-cancel-btn\"")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("/api/expenses")));
     }
 }

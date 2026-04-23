@@ -31,6 +31,17 @@ public class ExpensesService {
     }
 
     /**
+     * Updates an existing expense.
+     *
+     * @param expense map containing expense update payload
+     * @return true when update succeeded
+     */
+    @Transactional
+    public boolean updateExpense(Map<String, Object> expense) {
+        return expensesRepository.updateExpense(expense);
+    }
+
+    /**
      * Sets the category for a specific expense.
      *
      * @param expenseId  the expense ID (must be positive)

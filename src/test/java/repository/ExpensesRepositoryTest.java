@@ -93,6 +93,74 @@ class ExpensesRepositoryTest {
     }
 
     @Test
+    void testUpdateExpense() {
+        int id = expensesRepository.addExpense(expenseWithAmountAndDescription(200, "Lunch"));
+        Map<String, Object> expense = expenseWithAmountAndDescription(260, "Dinner");
+        expense.put("id", id);
+
+        boolean updated = expensesRepository.updateExpense(expense);
+
+        assertTrue(updated);
+    }
+
+    @Test
+    void testUpdateExpenseWithEmptyDescription() {
+        int id = expensesRepository.addExpense(expenseWithAmountAndDescription(120, "Taxi"));
+        Map<String, Object> expense = expenseWithAmountAndDescription(140, "");
+        expense.put("id", id);
+
+        boolean updated = expensesRepository.updateExpense(expense);
+
+        assertTrue(updated);
+    }
+
+    @Test
+    void testUpdateExpenseWithNullMapThrows() {
+        assertThrows(NullPointerException.class, () -> expensesRepository.updateExpense(null));
+    }
+
+    @Test
+    void testUpdateExpenseWithMissingIdThrows() {
+        Map<String, Object> expense = expenseWithAmountAndDescription(140, "Coffee");
+
+        Exception ex = assertThrows(InvalidDataAccessApiUsageException.class,
+                () -> expensesRepository.updateExpense(expense));
+        assertTrue(ex.getCause() instanceof IllegalArgumentException);
+    }
+
+    @Test
+    void testUpdateExpenseWithMissingAmountThrows() {
+        int id = expensesRepository.addExpense(expenseWithAmountAndDescription(110, "Snacks"));
+        Map<String, Object> expense = new HashMap<>();
+        expense.put("id", id);
+
+        Exception ex = assertThrows(InvalidDataAccessApiUsageException.class,
+                () -> expensesRepository.updateExpense(expense));
+        assertTrue(ex.getCause() instanceof IllegalArgumentException);
+    }
+
+    @Test
+    void testUpdateExpenseWithZeroAmountThrows() {
+        int id = expensesRepository.addExpense(expenseWithAmountAndDescription(150, "Bills"));
+        Map<String, Object> expense = expenseWithAmountAndDescription(0, "Bills");
+        expense.put("id", id);
+
+        Exception ex = assertThrows(InvalidDataAccessApiUsageException.class,
+                () -> expensesRepository.updateExpense(expense));
+        assertTrue(ex.getCause() instanceof IllegalArgumentException);
+    }
+
+    @Test
+    void testUpdateExpenseWithNonExistentIdReturnsFalse() {
+        Map<String, Object> expense = expenseWithAmountAndDescription(180, "Utilities");
+        expense.put("id", 999999);
+
+        boolean updated = expensesRepository.updateExpense(expense);
+
+        assertFalse(updated);
+    }
+
+    @Test
     void testSetCategoryForExpense() {
         // Act: Set category for an expense
         expensesRepository.setCategoryForExpense(6, 1);

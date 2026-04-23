@@ -19,6 +19,7 @@ public class ExpensesRepository {
     private static final String CATEGORY_EXISTS_SQL = "SELECT COUNT(*) FROM category WHERE id = ?";
     private static final String UPDATE_CATEGORY_SQL = "UPDATE expenses SET category_id = ? WHERE id = ?";
     private static final String INSERT_EXPENSE_SQL = "INSERT INTO expenses (amount, description) VALUES (?, ?)";
+    private static final String UPDATE_EXPENSE_SQL = "UPDATE expenses SET amount = ?, description = ? WHERE id = ?";
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -48,6 +49,21 @@ public class ExpensesRepository {
         return requireGeneratedId(keyHolder);
     }
 
+    /**
+     * Updates an existing expense row.
+     *
+     * @param expense map containing 'id', 'amount' and optional 'description'
+     * @return true when a row was updated
+     */
+    public boolean updateExpense(Map<String, Object> expense) {
+        Number amount = extractAndValidateAmount(expense);
+        Number id = extractAndValidateId(expense);
+        String description = extractDescription(expense);
+
+        int rows = jdbcTemplate.update(UPDATE_EXPENSE_SQL, amount, description, id);
+        return rows > 0;
+    }
+
     private Number extractAndValidateAmount(Map<String, Object> expense) {
         Objects.requireNonNull(expense, "Expense map must not be null");
         if (!expense.containsKey("amount")) {
@@ -63,6 +79,19 @@ public class ExpensesRepository {
 
     private String extractDescription(Map<String, Object> expense) {
         return Objects.toString(expense.get("description"), "");
+    }
+
+    private Number extractAndValidateId(Map<String, Object> expense) {
+        Objects.requireNonNull(expense, "Expense map must not be null");
+        if (!expense.containsKey("id")) {
+            throw new IllegalArgumentException("Expense must contain 'id'");
+        }
+
+        Number id = (Number) expense.get("id");
+        if (id == null || id.intValue() <= 0) {
+            throw new IllegalArgumentException("Expense id must be positive");
+        }
+        return id;
     }
 
     private int requireGeneratedId(KeyHolder keyHolder) {

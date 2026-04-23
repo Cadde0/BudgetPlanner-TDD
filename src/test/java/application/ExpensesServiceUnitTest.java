@@ -84,6 +84,28 @@ class ExpensesServiceUnitTest {
         assertThrows(IllegalArgumentException.class, () -> expensesService.addExpense(expense));
     }
 
+    @Test
+    void testUpdateExpense() {
+        Map<String, Object> expense = expenseWithAmountAndDescription(300, "Updated");
+        expense.put("id", 7);
+        when(expensesRepository.updateExpense(anyMap())).thenReturn(true);
+
+        boolean updated = expensesService.updateExpense(expense);
+
+        assertTrue(updated);
+        verify(expensesRepository).updateExpense(expense);
+    }
+
+    @Test
+    void testUpdateExpenseThrowsWhenAmountInvalid() {
+        Map<String, Object> expense = expenseWithAmountAndDescription(0, "Invalid");
+        expense.put("id", 7);
+        doThrow(new IllegalArgumentException("Expense amount must be positive"))
+                .when(expensesRepository).updateExpense(expense);
+
+        assertThrows(IllegalArgumentException.class, () -> expensesService.updateExpense(expense));
+    }
+
     /**
      * Verifies that setCategory calls the repository with correct parameters.
      */
