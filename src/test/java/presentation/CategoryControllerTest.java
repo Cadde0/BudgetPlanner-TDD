@@ -1,5 +1,6 @@
 package presentation;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +27,15 @@ class CategoryControllerTest {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
+
+        @AfterEach
+        void cleanUpCreatedCategories() {
+                String categoryNameColumn = resolveCategoryNameColumn();
+                String matchingCategoryIdsSql = "SELECT id FROM category WHERE " + categoryNameColumn + " LIKE 'TDD %'";
+
+                jdbcTemplate.update("DELETE FROM expenses WHERE category_id IN (" + matchingCategoryIdsSql + ")");
+                jdbcTemplate.update("DELETE FROM category WHERE " + categoryNameColumn + " LIKE 'TDD %'");
+        }
 
     @Test
     void testGetAllCategoriesForSelection() throws Exception {
@@ -191,4 +201,22 @@ class CategoryControllerTest {
                 Integer.class);
         return count != null && count > 0;
     }
+
+        private String resolveCategoryNameColumn() {
+                Integer countName = jdbcTemplate.queryForObject(
+                                "SELECT COUNT(*) FROM information_schema.columns WHERE table_name = 'category' AND column_name = 'name'",
+                                Integer.class);
+                if (countName != null && countName > 0) {
+                        return "name";
+                }
+
+                Integer countCategory = jdbcTemplate.queryForObject(
+                                "SELECT COUNT(*) FROM information_schema.columns WHERE table_name = 'category' AND column_name = 'category'",
+                                Integer.class);
+                if (countCategory != null && countCategory > 0) {
+                        return "category";
+                }
+
+                throw new IllegalStateException("Expected category table to have either 'name' or 'category' column");
+        }
 }
