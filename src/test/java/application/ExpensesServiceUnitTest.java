@@ -7,6 +7,9 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import repository.ExpensesRepository;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -22,9 +25,63 @@ class ExpensesServiceUnitTest {
     @InjectMocks
     private ExpensesService expensesService;
 
+    private Map<String, Object> expenseWithAmount(Number amount) {
+        Map<String, Object> expense = new HashMap<>();
+        expense.put("amount", amount);
+        return expense;
+    }
+
+    private Map<String, Object> expenseWithAmountAndDescription(Number amount, String description) {
+        Map<String, Object> expense = expenseWithAmount(amount);
+        expense.put("description", description);
+        return expense;
+    }
+
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+    }
+
+    @Test
+    void testAddExpense() {
+        Map<String, Object> expense = expenseWithAmountAndDescription(250, "Transport");
+
+        when(expensesRepository.addExpense(anyMap())).thenReturn(1);
+
+        int id = expensesService.addExpense(expense);
+
+        assertEquals(1, id);
+        verify(expensesRepository).addExpense(expense);
+    }
+
+    @Test
+    void testAddExpenseWithEmptyDescription() {
+        Map<String, Object> expense = expenseWithAmountAndDescription(250, "");
+
+        when(expensesRepository.addExpense(anyMap())).thenReturn(2);
+
+        int id = expensesService.addExpense(expense);
+
+        assertEquals(2, id);
+        verify(expensesRepository).addExpense(expense);
+    }
+
+    @Test
+    void testAddExpenseThrowsWhenAmountMissing() {
+        Map<String, Object> expense = new HashMap<>();
+        doThrow(new IllegalArgumentException("Expense must contain 'amount'"))
+                .when(expensesRepository).addExpense(expense);
+
+        assertThrows(IllegalArgumentException.class, () -> expensesService.addExpense(expense));
+    }
+
+    @Test
+    void testAddExpenseThrowsWhenAmountInvalid() {
+        Map<String, Object> expense = expenseWithAmount(0);
+        doThrow(new IllegalArgumentException("Expense amount must be positive"))
+                .when(expensesRepository).addExpense(expense);
+
+        assertThrows(IllegalArgumentException.class, () -> expensesService.addExpense(expense));
     }
 
     /**

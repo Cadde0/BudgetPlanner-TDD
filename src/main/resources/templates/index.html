@@ -5,87 +5,294 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Budget Planner</title>
     <style>
-      body {
-        font-family: Arial, sans-serif;
-        margin: 0;
-        padding: 0;
-        background: #f7f7f7;
+      :root {
+        --bg: #f4f7fb;
+        --surface: #ffffff;
+        --surface-soft: #f8fafc;
+        --text: #1f2937;
+        --text-muted: #526074;
+        --border: #d8e1ea;
+        --primary: #1769aa;
+        --primary-dark: #14588e;
+        --secondary: #6b7f95;
+        --secondary-dark: #5a6d81;
+        --danger: #b83232;
+        --radius: 12px;
+        --shadow: 0 12px 32px rgba(8, 34, 64, 0.08);
       }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Noto Sans", "Helvetica Neue", sans-serif;
+        margin: 0;
+        padding: 0 1rem 2rem;
+        background: radial-gradient(circle at top, #eef5ff 0%, var(--bg) 45%);
+        color: var(--text);
+        line-height: 1.45;
+      }
+
       header {
-        background: #1976d2;
-        color: #fff;
-        padding: 2rem 0;
+        background: linear-gradient(120deg, #0f5f96, var(--primary));
+        color: #f8fbff;
+        padding: 1.5rem 1rem;
         text-align: center;
-        font-size: 2.5rem;
-        letter-spacing: 2px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        font-size: clamp(1.8rem, 2.4vw, 2.4rem);
+        letter-spacing: 0.03em;
+        font-weight: 700;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.14);
+      }
+
+      main {
+        max-width: 980px;
+        margin: 1.5rem auto;
+        background: var(--surface);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: clamp(1rem, 2vw, 2rem);
+      }
+
+      h2,
+      h3,
+      h4 {
+        margin: 0 0 0.75rem;
+        color: #153a5b;
+      }
+
+      h2 {
+        font-size: 1.4rem;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 0.45rem;
+      }
+
+      h3 {
+        font-size: 1.2rem;
+      }
+
+      h4 {
+        font-size: 1.02rem;
+        color: var(--text-muted);
+      }
+
+      form,
+      .category-block {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+        gap: 0.6rem;
+        align-items: end;
+        margin-bottom: 0.7rem;
+      }
+
+      label {
+        display: block;
+        font-weight: 600;
+        font-size: 0.94rem;
+        color: #24364a;
+      }
+
+      input,
+      select,
+      button {
+        width: 100%;
+        min-height: 38px;
+        font: inherit;
+        border-radius: 8px;
+      }
+
+      input,
+      select {
+        border: 1px solid var(--border);
+        background: #fff;
+        padding: 0.45rem 0.55rem;
+        color: var(--text);
+      }
+
+      input:focus,
+      select:focus {
+        outline: 2px solid rgba(23, 105, 170, 0.2);
+        border-color: var(--primary);
+      }
+
+      button {
+        border: none;
+        background: var(--primary);
+        color: #fff;
+        padding: 0.5rem 0.8rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background 0.15s ease;
+      }
+
+      button:hover {
+        background: var(--primary-dark);
+      }
+
+      .btn-secondary {
+        background: var(--secondary);
+      }
+
+      .btn-secondary:hover {
+        background: var(--secondary-dark);
+      }
+
+      .btn-danger {
+        background: var(--danger);
+      }
+
+      .btn-danger:hover {
+        background: #972a2a;
+      }
+
+      td button {
+        width: auto;
+        min-height: 32px;
+        padding: 0.35rem 0.65rem;
+      }
+
+      td select {
+        width: auto;
+        min-height: 32px;
+        max-width: 170px;
+        margin-right: 0.35rem;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 0;
+        background: var(--surface-soft);
+      }
+
+      .table-wrap {
+        margin-top: 0.6rem;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        overflow: auto;
+        max-height: 340px;
+        background: #fff;
+      }
+
+      th,
+      td {
+        border: 1px solid var(--border);
+        padding: 0.72rem 0.6rem;
+        text-align: center;
+      }
+
+      th {
+        background: #e8f0f8;
+        color: #1d3f60;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+      }
+
+      .feedback {
+        margin-top: 0.55rem;
+        color: #1f4e78;
+        min-height: 1.2rem;
+        font-size: 0.94rem;
+      }
+
+      .section-divider {
+        margin: 1.6rem 0;
+        border: none;
+        border-top: 1px solid var(--border);
+      }
+
+      @media (max-width: 700px) {
+        body {
+          padding: 0 0.55rem 1rem;
+        }
+
+        main {
+          border-radius: 10px;
+          padding: 0.9rem;
+        }
+
+        th,
+        td {
+          font-size: 0.86rem;
+          padding: 0.45rem;
+        }
       }
     </style>
   </head>
   <body>
     <header>Budget Planner</header>
-    <main
-      style="
-        max-width: 600px;
-        margin: 2rem auto;
-        background: #fff;
-        border-radius: 8px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
-        padding: 2rem;
-      ">
+    <main>
       <h2>Manage Income</h2>
       <form id="income-form">
         <input type="hidden" id="income-id" />
         <label for="income-amount">Amount:</label>
         <input type="number" id="income-amount" min="1" required />
         <button type="submit" id="add-btn">Add Income</button>
-        <button type="button" id="update-btn" style="display: none">
+        <button
+          type="button"
+          id="update-btn"
+          class="btn-secondary"
+          style="display: none">
           Update Income
         </button>
-        <button type="button" id="cancel-btn" style="display: none">
+        <button
+          type="button"
+          id="cancel-btn"
+          class="btn-secondary"
+          style="display: none">
           Cancel
         </button>
       </form>
-      <div id="income-result" style="margin-top: 1rem"></div>
+      <div id="income-result" class="feedback"></div>
       <h3>All Incomes</h3>
-      <table
-        id="income-table"
-        border="1"
-        style="width: 100%; margin-top: 1rem; text-align: center">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Amount</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
+      <div class="table-wrap">
+        <table id="income-table">
+          <thead>
+            <tr>
+              <th>Amount</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
 
-      <hr style="margin: 2rem 0" />
+      <hr class="section-divider" />
+
+      <h2>Add Expense</h2>
+      <form id="expense-form">
+        <label for="expense-amount">Amount:</label>
+        <input type="number" id="expense-amount" min="1" required />
+        <label for="expense-description">Description (optional):</label>
+        <input type="text" id="expense-description" />
+        <button type="submit">Add Expense</button>
+      </form>
+      <div id="expense-result" class="feedback"></div>
+
+      <hr class="section-divider" />
 
       <h3>All Expenses</h3>
-      <table
-        id="expenses-table"
-        border="1"
-        style="width: 100%; margin-top: 1rem; text-align: center">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Amount</th>
-            <th>Current Category</th>
-            <th>Assign Category</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-      <div id="expense-category-result" style="margin-top: 1rem"></div>
+      <div class="table-wrap">
+        <table id="expenses-table">
+          <thead>
+            <tr>
+              <th>Amount</th>
+              <th>Description</th>
+              <th>Current Category</th>
+              <th>Assign Category</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div id="expense-category-result" class="feedback"></div>
 
-      <hr style="margin: 2rem 0" />
+      <hr class="section-divider" />
 
       <h3>Manage Categories</h3>
       <h4>Add New Category</h4>
-      <div style="margin-top: 1rem">
+      <div class="category-block">
         <label for="category-add-name">New Category Name:</label>
         <input type="text" id="category-add-name" />
         <label for="category-add-limit">Category Limit:</label>
@@ -93,22 +300,26 @@
         <button type="button" id="add-category-btn">Add Category</button>
       </div>
 
-      <h4 style="margin-top: 1.5rem">Edit Existing Category</h4>
-      <div style="margin-top: 1rem">
+      <h4>Edit Existing Category</h4>
+      <div class="category-block">
         <label for="category-manage-select">Select Existing Category:</label>
         <select id="category-manage-select"></select>
       </div>
 
-      <div style="margin-top: 1rem">
+      <div class="category-block">
         <label for="category-update-name">New Name for Selected:</label>
         <input type="text" id="category-update-name" />
         <label for="category-update-limit">New Limit for Selected:</label>
         <input type="number" id="category-update-limit" min="0" />
-        <button type="button" id="update-category-btn">Update Selected</button>
-        <button type="button" id="delete-category-btn">Delete Selected</button>
+        <button type="button" id="update-category-btn" class="btn-secondary">
+          Update Selected
+        </button>
+        <button type="button" id="delete-category-btn" class="btn-danger">
+          Delete Selected
+        </button>
       </div>
 
-      <div id="category-result" style="margin-top: 1rem"></div>
+      <div id="category-result" class="feedback"></div>
     </main>
     <script>
       const form = document.getElementById("income-form");
@@ -122,6 +333,12 @@
       const expenseCategoryResultDiv = document.getElementById(
         "expense-category-result",
       );
+      const expenseForm = document.getElementById("expense-form");
+      const expenseAmountInput = document.getElementById("expense-amount");
+      const expenseDescriptionInput = document.getElementById(
+        "expense-description",
+      );
+      const expenseResultDiv = document.getElementById("expense-result");
       const expensesTableBody = document.querySelector("#expenses-table tbody");
       const categoryAddNameInput = document.getElementById("category-add-name");
       const categoryAddLimitInput =
@@ -249,12 +466,12 @@
             ? getCategoryNameById(expense.category_id)
             : "-";
           tr.innerHTML = `
-            <td>${expense.id}</td>
             <td>${expense.amount ?? "-"}</td>
+            <td>${expense.description ?? ""}</td>
             <td>${currentCategory}</td>
             <td>
               <select id="${selectId}">${options}</select>
-              <button onclick="assignCategoryFromRow(${expense.id}, '${selectId}')">Set</button>
+              <button class="btn-secondary" onclick="assignCategoryFromRow(${expense.id}, '${selectId}')">Set</button>
             </td>`;
 
           expensesTableBody.appendChild(tr);
@@ -265,10 +482,10 @@
         tableBody.innerHTML = "";
         incomes.forEach((income) => {
           const tr = document.createElement("tr");
-          tr.innerHTML = `<td>${income.id}</td><td>${income.amount}</td>
+          tr.innerHTML = `<td>${income.amount}</td>
                         <td>
-                            <button onclick="editIncome(${income.id}, ${income.amount})">Edit</button>
-                            <button onclick="deleteIncome(${income.id})">Delete</button>
+                            <button class="btn-secondary" onclick="editIncome(${income.id}, ${income.amount})">Edit</button>
+                            <button class="btn-danger" onclick="deleteIncome(${income.id})">Delete</button>
                         </td>`;
           tableBody.appendChild(tr);
         });
@@ -327,6 +544,34 @@
         expenseCategoryResultDiv.textContent = `Expense #${expenseId} assigned to category #${categoryId}.`;
         await fetchExpenses();
       };
+
+      expenseForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const amount = parseFloat(expenseAmountInput.value);
+        if (!amount || amount <= 0) {
+          expenseResultDiv.textContent = "Amount must be positive.";
+          return;
+        }
+
+        const description = expenseDescriptionInput.value || "";
+        const response = await fetch("/api/expenses", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ amount, description }),
+        });
+
+        if (!response.ok) {
+          expenseResultDiv.textContent = "Could not add expense.";
+          return;
+        }
+
+        const id = await response.json();
+        expenseResultDiv.textContent = `Expense added with id ${id}.`;
+        expenseAmountInput.value = "";
+        expenseDescriptionInput.value = "";
+        await fetchExpenses();
+      });
 
       addCategoryBtn.addEventListener("click", async () => {
         const name = categoryAddNameInput.value.trim();

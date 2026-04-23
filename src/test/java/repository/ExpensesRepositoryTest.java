@@ -4,6 +4,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
+
+import java.util.HashMap;
+import java.util.Map;
+
 import static org.junit.jupiter.api.Assertions.*;
 import presentation.BudgetPlannerApplication;
 
@@ -16,6 +20,77 @@ class ExpensesRepositoryTest {
 
     @Autowired
     private ExpensesRepository expensesRepository;
+
+    private Map<String, Object> expenseWithAmount(Number amount) {
+        Map<String, Object> expense = new HashMap<>();
+        expense.put("amount", amount);
+        return expense;
+    }
+
+    private Map<String, Object> expenseWithAmountAndDescription(Number amount, String description) {
+        Map<String, Object> expense = expenseWithAmount(amount);
+        expense.put("description", description);
+        return expense;
+    }
+
+    @Test
+    void testAddExpense() {
+        Map<String, Object> expense = expenseWithAmountAndDescription(300, "Groceries");
+
+        int id = expensesRepository.addExpense(expense);
+
+        assertTrue(id > 0);
+    }
+
+    @Test
+    void testAddExpenseWithEmptyDescription() {
+        Map<String, Object> expense = expenseWithAmountAndDescription(120, "");
+
+        int id = expensesRepository.addExpense(expense);
+
+        assertTrue(id > 0);
+    }
+
+    @Test
+    void testAddExpenseWithoutDescription() {
+        Map<String, Object> expense = expenseWithAmount(90);
+
+        int id = expensesRepository.addExpense(expense);
+
+        assertTrue(id > 0);
+    }
+
+    @Test
+    void testAddExpenseWithNullMapThrows() {
+        assertThrows(NullPointerException.class, () -> expensesRepository.addExpense(null));
+    }
+
+    @Test
+    void testAddExpenseWithMissingAmountThrows() {
+        Map<String, Object> expense = new HashMap<>();
+
+        Exception ex = assertThrows(InvalidDataAccessApiUsageException.class,
+                () -> expensesRepository.addExpense(expense));
+        assertTrue(ex.getCause() instanceof IllegalArgumentException);
+    }
+
+    @Test
+    void testAddExpenseWithZeroAmountThrows() {
+        Map<String, Object> expense = expenseWithAmount(0);
+
+        Exception ex = assertThrows(InvalidDataAccessApiUsageException.class,
+                () -> expensesRepository.addExpense(expense));
+        assertTrue(ex.getCause() instanceof IllegalArgumentException);
+    }
+
+    @Test
+    void testAddExpenseWithNegativeAmountThrows() {
+        Map<String, Object> expense = expenseWithAmount(-10);
+
+        Exception ex = assertThrows(InvalidDataAccessApiUsageException.class,
+                () -> expensesRepository.addExpense(expense));
+        assertTrue(ex.getCause() instanceof IllegalArgumentException);
+    }
 
     @Test
     void testSetCategoryForExpense() {

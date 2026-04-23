@@ -1,7 +1,10 @@
 package application;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import repository.ExpensesRepository;
+
+import java.util.Map;
 
 /**
  * Service for expense-related operations.
@@ -14,6 +17,17 @@ public class ExpensesService {
 
     public ExpensesService(ExpensesRepository expensesRepository) {
         this.expensesRepository = expensesRepository;
+    }
+
+    /**
+     * Adds a new expense record.
+     *
+     * @param expense expense payload map
+     * @return generated id of the inserted expense
+     */
+    @Transactional
+    public int addExpense(Map<String, Object> expense) {
+        return expensesRepository.addExpense(expense);
     }
 
     /**
