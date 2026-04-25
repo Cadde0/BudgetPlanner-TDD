@@ -11,6 +11,10 @@ import java.util.Map;
  */
 @Service
 public class BudgetService {
+    private static final String EXPENSES_TABLE = "expenses";
+    private static final String INCOME_TABLE = "income";
+    private static final String AMOUNT_FIELD = "amount";
+
     private final BudgetRepository budgetRepository;
 
     public BudgetService(BudgetRepository budgetRepository) {
@@ -36,5 +40,46 @@ public class BudgetService {
      */
     public Map<String, Object> getById(String tableName, int id) {
         return budgetRepository.queryById(tableName, id);
+    }
+
+    /**
+     * Calculates the total sum of all expenses.
+     *
+     * @return sum of all expense amounts
+     */
+    public double calculateTotalExpenses() {
+        return calculateTotalForTable(EXPENSES_TABLE);
+    }
+
+    /**
+     * Calculates the total sum of all income.
+     *
+     * @return sum of all income amounts
+     */
+    public double calculateTotalIncome() {
+        return calculateTotalForTable(INCOME_TABLE);
+    }
+
+    /**
+     * Calculates the remaining budget (Total Income - Total Expenses).
+     *
+     * @return remaining budget amount
+     */
+    public double calculateRemainingBudget() {
+        return calculateTotalIncome() - calculateTotalExpenses();
+    }
+
+    private double calculateTotalForTable(String tableName) {
+        List<Map<String, Object>> rows = budgetRepository.queryAllRows(tableName);
+        return sumAmount(rows);
+    }
+
+    private double sumAmount(List<Map<String, Object>> rows) {
+        if (rows == null) return 0.0;
+        return rows.stream()
+                .map(row -> row.get(AMOUNT_FIELD))
+                .filter(Number.class::isInstance)
+                .mapToDouble(amount -> ((Number) amount).doubleValue())
+                .sum();
     }
 }

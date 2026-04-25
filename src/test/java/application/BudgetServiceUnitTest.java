@@ -1,20 +1,11 @@
 package application;
 
-import application.BudgetService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.mockito.junit.jupiter.MockitoExtension;
 import repository.BudgetRepository;
-
-import java.util.Arrays;
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.eq;
 
 import java.util.*;
 
@@ -98,4 +89,70 @@ class BudgetServiceUnitTest {
         assertThrows(RuntimeException.class, () -> budgetService.getById("category", 1));
         verify(budgetRepository).queryById("category", 1);
     }
+
+    @Test
+    void testCalculateTotalExpenses() {
+        List<Map<String, Object>> expenses = Arrays.asList(
+            Map.of("amount", 100.50),
+            Map.of("amount", 50.25)
+        );
+        when(budgetRepository.queryAllRows("expenses")).thenReturn(expenses);
+
+        double total = budgetService.calculateTotalExpenses();
+
+        assertEquals(150.75, total, 0.001);
+    }
+
+    @Test
+    void testCalculateTotalExpensesWithEmptyList() {
+        when(budgetRepository.queryAllRows("expenses")).thenReturn(Collections.emptyList());
+        double total = budgetService.calculateTotalExpenses();
+        assertEquals(0.0, total);
+    }
+
+    @Test
+    void testCalculateTotalIncome() {
+        List<Map<String, Object>> income = Arrays.asList(
+            Map.of("amount", 1000.0),
+            Map.of("amount", 500.0)
+        );
+        when(budgetRepository.queryAllRows("income")).thenReturn(income);
+
+        double total = budgetService.calculateTotalIncome();
+
+        assertEquals(1500.0, total, 0.001);
+    }
+
+    @Test
+    void testCalculateTotalIncomeWithEmptyList() {
+        when(budgetRepository.queryAllRows("income")).thenReturn(Collections.emptyList());
+        double total = budgetService.calculateTotalIncome();
+        assertEquals(0.0, total);
+    }
+
+    @Test
+    void testCalculateRemainingBudget() {
+        List<Map<String, Object>> income = List.of(Map.of("amount", 2000.0));
+        List<Map<String, Object>> expenses = List.of(
+            Map.of("amount", 500.0),
+            Map.of("amount", 300.0)
+        );
+        when(budgetRepository.queryAllRows("income")).thenReturn(income);
+        when(budgetRepository.queryAllRows("expenses")).thenReturn(expenses);
+
+        double remaining = budgetService.calculateRemainingBudget();
+
+        assertEquals(1200.0, remaining, 0.001);
+    }
+
+    @Test
+    void testCalculateRemainingBudgetWithNoData() {
+        when(budgetRepository.queryAllRows("income")).thenReturn(Collections.emptyList());
+        when(budgetRepository.queryAllRows("expenses")).thenReturn(Collections.emptyList());
+
+        double remaining = budgetService.calculateRemainingBudget();
+
+        assertEquals(0.0, remaining);
+    }
 }
+

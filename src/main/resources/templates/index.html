@@ -202,6 +202,39 @@
         border-top: 1px solid var(--border);
       }
 
+      .summary-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+      }
+
+      .summary-card {
+        background: var(--surface-soft);
+        padding: 1.5rem;
+        border-radius: var(--radius);
+        border: 1px solid var(--border);
+        text-align: center;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      }
+
+      .summary-card h4 {
+        margin: 0 0 0.5rem 0;
+        color: var(--text-muted);
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .summary-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--primary);
+      }
+
+      .value-danger { color: var(--danger); }
+      .value-success { color: #2e7d32; }
+
       @media (max-width: 700px) {
         body {
           padding: 0 0.55rem 1rem;
@@ -223,6 +256,24 @@
   <body>
     <header>Budget Planner</header>
     <main>
+      <h2>Budget Summary</h2>
+      <div class="summary-container">
+        <div class="summary-card">
+          <h4>Total Income</h4>
+          <div id="total-income" class="summary-value value-success">0.00</div>
+        </div>
+        <div class="summary-card">
+          <h4>Total Expenses</h4>
+          <div id="total-expenses" class="summary-value value-danger">0.00</div>
+        </div>
+        <div class="summary-card">
+          <h4>Remaining Budget</h4>
+          <div id="remaining-budget" class="summary-value">0.00</div>
+        </div>
+      </div>
+
+      <hr class="section-divider" />
+
       <h2>Manage Income</h2>
       <form id="income-form">
         <input type="hidden" id="income-id" />
@@ -380,10 +431,23 @@
       const categoryResultDiv = document.getElementById("category-result");
       let categories = [];
 
+      async function fetchBudgetSummary() {
+        const resp = await fetch("/api/budget/summary");
+        const summary = await resp.json();
+        renderBudgetSummary(summary);
+      }
+
+      function renderBudgetSummary(summary) {
+        document.getElementById("total-income").textContent = (summary.totalIncome || 0).toFixed(2);
+        document.getElementById("total-expenses").textContent = (summary.totalExpenses || 0).toFixed(2);
+        document.getElementById("remaining-budget").textContent = (summary.remainingBudget || 0).toFixed(2);
+      }
+
       async function fetchIncomes() {
         const resp = await fetch("/api/income");
         const incomes = await resp.json();
         renderIncomes(incomes);
+        fetchBudgetSummary();
       }
 
       async function fetchCategories() {
@@ -474,6 +538,7 @@
         const resp = await fetch("/api/expenses");
         const expenses = await resp.json();
         renderExpenses(expenses);
+        fetchBudgetSummary();
       }
 
       function getCategoryLabel(category) {
@@ -885,6 +950,7 @@
         await fetchIncomes();
         await fetchCategories();
         await fetchExpenses();
+        await fetchBudgetSummary();
       }
 
       initializePage();
