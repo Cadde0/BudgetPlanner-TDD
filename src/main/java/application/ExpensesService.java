@@ -4,7 +4,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import repository.ExpensesRepository;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Service for expense-related operations.
@@ -20,10 +24,50 @@ public class ExpensesService {
     }
 
     /**
+     * Retrieves all expenses grouped by category, including the total per category.
+     *
+     * @return a list of maps, each containing category name, total sum, and a list
+     *         of expenses
+     */
+    public List<Map<String, Object>> getExpensesGroupedByCategory() {
+        List<Map<String, Object>> allExpenses = expensesRepository.getAllExpensesWithCategory();
+
+        Map<String, List<Map<String, Object>>> grouped = allExpenses.stream()
+                .collect(Collectors.groupingBy(e -> (String) e.get("categoryName")));
+
+        List<Map<String, Object>> results = new ArrayList<>();
+        for (Map.Entry<String, List<Map<String, Object>>> entry : grouped.entrySet()) {
+            String categoryName = entry.getKey();
+            List<Map<String, Object>> expenses = entry.getValue();
+
+            double total = expenses.stream()
+                    .mapToDouble(e -> ((Number) e.get("amount")).doubleValue())
+                    .sum();
+
+            // Retrieve the category limit from the first expense in the group
+            Map<String, Object> firstExpense = expenses.get(0);
+            Double limit = null;
+            if (firstExpense.containsKey("categoryLimit") && firstExpense.get("categoryLimit") != null) {
+                limit = ((Number) firstExpense.get("categoryLimit")).doubleValue();
+            }
+
+            Map<String, Object> categoryData = new HashMap<>();
+            categoryData.put("categoryName", categoryName);
+            categoryData.put("total", total);
+            categoryData.put("limit", limit);
+            categoryData.put("expenses", expenses);
+            results.add(categoryData);
+        }
+
+        return results;
+    }
+
+    /**
      * Adds a new expense record.
      *
      * @param expense expense payload map
-     * @return generated id of the inserted expense
+...
+
      */
     @Transactional
     public int addExpense(Map<String, Object> expense) {

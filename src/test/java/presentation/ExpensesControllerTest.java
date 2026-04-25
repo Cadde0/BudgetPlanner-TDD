@@ -223,4 +223,15 @@ class ExpensesControllerTest {
         assertThrows(RuntimeException.class,
                 () -> expensesController.setCategory(1, 99999));
     }
+
+    @Test
+    void testGetGroupedExpenses() {
+        List<Map<String, Object>> expected = Collections.singletonList(new HashMap<>());
+        when(expensesService.getExpensesGroupedByCategory()).thenReturn(expected);
+
+        List<Map<String, Object>> result = expensesController.getGroupedExpenses();
+
+        assertEquals(expected, result);
+        verify(expensesService).getExpensesGroupedByCategory();
+    }
 }

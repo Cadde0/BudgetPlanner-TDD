@@ -56,6 +56,11 @@ public class ExpensesController {
         return ResponseEntity.ok(deleted);
     }
 
+    @GetMapping("/grouped")
+    public List<Map<String, Object>> getGroupedExpenses() {
+        return expensesService.getExpensesGroupedByCategory();
+    }
+
     @PutMapping("/{expenseId}/category/{categoryId}")
     public ResponseEntity<Boolean> setCategory(@PathVariable int expenseId, @PathVariable int categoryId) {
         expensesService.setCategory(expenseId, categoryId);

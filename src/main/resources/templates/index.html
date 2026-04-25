@@ -215,7 +215,7 @@
         border-radius: var(--radius);
         border: 1px solid var(--border);
         text-align: center;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
       }
 
       .summary-card h4 {
@@ -232,8 +232,12 @@
         color: var(--primary);
       }
 
-      .value-danger { color: var(--danger); }
-      .value-success { color: #2e7d32; }
+      .value-danger {
+        color: var(--danger);
+      }
+      .value-success {
+        color: #2e7d32;
+      }
 
       @media (max-width: 700px) {
         body {
@@ -340,20 +344,8 @@
 
       <hr class="section-divider" />
 
-      <h3>All Expenses</h3>
-      <div class="table-wrap">
-        <table id="expenses-table">
-          <thead>
-            <tr>
-              <th>Amount</th>
-              <th>Description</th>
-              <th>Current Category</th>
-              <th>Assign Category</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
+      <h2>Expenses by Category</h2>
+      <div id="grouped-expenses-container"></div>
       <div id="expense-category-result" class="feedback"></div>
 
       <hr class="section-divider" />
@@ -412,7 +404,6 @@
       const expenseUpdateBtn = document.getElementById("expense-update-btn");
       const expenseCancelBtn = document.getElementById("expense-cancel-btn");
       const expenseResultDiv = document.getElementById("expense-result");
-      const expensesTableBody = document.querySelector("#expenses-table tbody");
       const categoryAddNameInput = document.getElementById("category-add-name");
       const categoryAddLimitInput =
         document.getElementById("category-add-limit");
@@ -438,9 +429,15 @@
       }
 
       function renderBudgetSummary(summary) {
-        document.getElementById("total-income").textContent = (summary.totalIncome || 0).toFixed(2);
-        document.getElementById("total-expenses").textContent = (summary.totalExpenses || 0).toFixed(2);
-        document.getElementById("remaining-budget").textContent = (summary.remainingBudget || 0).toFixed(2);
+        document.getElementById("total-income").textContent = (
+          summary.totalIncome || 0
+        ).toFixed(2);
+        document.getElementById("total-expenses").textContent = (
+          summary.totalExpenses || 0
+        ).toFixed(2);
+        document.getElementById("remaining-budget").textContent = (
+          summary.remainingBudget || 0
+        ).toFixed(2);
       }
 
       async function fetchIncomes() {
@@ -455,6 +452,7 @@
         categories = await resp.json();
         renderManageCategoryOptions();
         renderExpenseCategoryOptions();
+        fetchGroupedExpenses();
       }
 
       function renderExpenseCategoryOptions() {
@@ -522,9 +520,9 @@
         }
       }
 
-      async function extractErrorMessage(response, fallbackMessage) {
+      async function extractErrorMessage(receivedResponse, fallbackMessage) {
         try {
-          const payload = await response.json();
+          const payload = await receivedResponse.json();
           if (payload && payload.message) {
             return payload.message;
           }
@@ -535,10 +533,86 @@
       }
 
       async function fetchExpenses() {
-        const resp = await fetch("/api/expenses");
-        const expenses = await resp.json();
-        renderExpenses(expenses);
         fetchBudgetSummary();
+        fetchGroupedExpenses();
+      }
+
+      async function fetchGroupedExpenses() {
+        const resp = await fetch("/api/expenses/grouped");
+        const grouped = await resp.json();
+        renderGroupedExpenses(grouped);
+      }
+
+      function renderGroupedExpenses(grouped) {
+        const container = document.getElementById("grouped-expenses-container");
+        if (!grouped || grouped.length === 0) {
+          container.innerHTML = "<p>No expenses grouped by category.</p>";
+          return;
+        }
+
+        container.innerHTML = grouped
+          .map((group) => {
+            const expenseRows = group.expenses
+              .map((exp) => {
+                const selectId = `category-select-${exp.id}`;
+                const options = categories
+                  .map((category) => {
+                    const selected =
+                      Number(exp.categoryId) === Number(category.id)
+                        ? "selected"
+                        : "";
+                    const label = getCategoryLabel(category);
+                    return `<option value="${category.id}" ${selected}>${label}</option>`;
+                  })
+                  .join("");
+
+                const safeDescription = String(
+                  exp.description ?? "",
+                ).replaceAll("'", "\\'");
+
+                return `
+                <tr>
+                  <td>${exp.amount.toFixed(2)}</td>
+                  <td>${exp.description || "-"}</td>
+                  <td>
+                    <select id="${selectId}">${options}</select>
+                    <button class="btn-secondary" onclick="editExpense(${exp.id}, ${exp.amount ?? 0}, '${safeDescription}')">Edit</button>
+                    <button class="btn-secondary" onclick="assignCategoryFromRow(${exp.id}, '${selectId}')">Set</button>
+                    <button class="btn-danger" onclick="deleteExpense(${exp.id})">Delete</button>
+                  </td>
+                </tr>
+              `;
+              })
+              .join("");
+
+            return `
+            <div class="category-group" style="margin-bottom: 1.5rem; border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; background: var(--surface-soft);">
+              <h3 style="display: flex; justify-content: space-between; align-items: center;">
+                <span>${group.categoryName}</span>
+                <span style="font-size: 1rem; color: var(--text-muted);">
+                  Limit: ${
+                    group.limit != null ? group.limit.toFixed(2) : "N/A"
+                  } | Total: ${group.total.toFixed(2)}
+                </span>
+              </h3>
+              <div class="table-wrap" style="background: white;">
+                <table style="margin-top: 0; background: white;">
+                  <thead>
+                    <tr>
+                      <th>Amount</th>
+                      <th>Description</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${expenseRows}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          `;
+          })
+          .join("");
       }
 
       function getCategoryLabel(category) {
@@ -550,46 +624,6 @@
           (category) => Number(category.id) === Number(categoryId),
         );
         return matchedCategory ? getCategoryLabel(matchedCategory) : "-";
-      }
-
-      function renderExpenses(expenses) {
-        expensesTableBody.innerHTML = "";
-
-        expenses.forEach((expense) => {
-          const tr = document.createElement("tr");
-          const selectId = `category-select-${expense.id}`;
-
-          const options = categories
-            .map((category) => {
-              const selected =
-                Number(expense.category_id) === Number(category.id)
-                  ? "selected"
-                  : "";
-              const label = getCategoryLabel(category);
-              return `<option value="${category.id}" ${selected}>${label} </option>`;
-            })
-            .join("");
-
-          const currentCategory = expense.category_id
-            ? getCategoryNameById(expense.category_id)
-            : "-";
-          const safeDescription = String(expense.description ?? "").replaceAll(
-            "'",
-            "\\'",
-          );
-          tr.innerHTML = `
-            <td>${expense.amount ?? "-"}</td>
-            <td>${expense.description ?? ""}</td>
-            <td>${currentCategory}</td>
-            <td>
-              <select id="${selectId}">${options}</select>
-              <button class="btn-secondary" onclick="editExpense(${expense.id}, ${expense.amount ?? 0}, '${safeDescription}')">Edit</button>
-              <button class="btn-secondary" onclick="assignCategoryFromRow(${expense.id}, '${selectId}')">Set</button>
-              <button class="btn-danger" onclick="deleteExpense(${expense.id})">Delete</button>
-            </td>`;
-
-          expensesTableBody.appendChild(tr);
-        });
       }
 
       function renderIncomes(incomes) {

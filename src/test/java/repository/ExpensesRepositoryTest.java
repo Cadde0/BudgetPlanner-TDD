@@ -273,12 +273,20 @@ class ExpensesRepositoryTest {
 
     @Test
     void testSetCategoryForExpense() {
-        // Act: Set category for an expense
-        expensesRepository.setCategoryForExpense(6, 1);
+        int categoryId = createTempCategory();
+        int expenseId = expensesRepository.addExpense(expenseWithAmountDescriptionAndCategory(100, "Breakfast", categoryId));
+        createdExpenseIds.add(expenseId);
+        int newCategoryId = createTempCategory();
 
-        // Assert: Verify no exception was thrown (method executed successfully on real
-        // database)
-        assertTrue(true, "Category was successfully set for the expense");
+        // Act: Set category for an expense
+        expensesRepository.setCategoryForExpense(expenseId, newCategoryId);
+
+        // Assert: Verify category was updated
+        Integer persistedCategoryId = jdbcTemplate.queryForObject(
+                "SELECT category_id FROM expenses WHERE id = ?",
+                Integer.class,
+                expenseId);
+        assertEquals(newCategoryId, persistedCategoryId);
     }
 
     @Test
@@ -313,5 +321,31 @@ class ExpensesRepositoryTest {
                 "Should throw exception when category ID does not exist");
     }
 
-    
+    @Test
+    void testGetAllExpensesWithCategory() {
+        int categoryId = createTempCategory();
+        String categoryName = jdbcTemplate.queryForObject("SELECT name FROM category WHERE id = ?", String.class, categoryId);
+        
+        int id1 = expensesRepository.addExpense(expenseWithAmountDescriptionAndCategory(100, "Expense 1", categoryId));
+        int id2 = expensesRepository.addExpense(expenseWithAmountDescriptionAndCategory(200, "Expense 2", categoryId));
+        createdExpenseIds.add(id1);
+        createdExpenseIds.add(id2);
+
+        List<Map<String, Object>> results = expensesRepository.getAllExpensesWithCategory();
+
+        assertNotNull(results);
+        assertFalse(results.isEmpty());
+        
+        Map<String, Object> exp1 = results.stream().filter(m -> (int)m.get("id") == id1).findFirst().orElseThrow();
+        assertEquals(100.0, ((Number)exp1.get("amount")).doubleValue());
+        assertEquals("Expense 1", exp1.get("description"));
+        assertEquals(categoryName, exp1.get("categoryName"));
+        assertEquals(categoryId, exp1.get("categoryId"));
+
+        Map<String, Object> exp2 = results.stream().filter(m -> (int)m.get("id") == id2).findFirst().orElseThrow();
+        assertEquals(200.0, ((Number)exp2.get("amount")).doubleValue());
+        assertEquals("Expense 2", exp2.get("description"));
+        assertEquals(categoryName, exp2.get("categoryName"));
+        assertEquals(categoryId, exp2.get("categoryId"));
+    }
 }

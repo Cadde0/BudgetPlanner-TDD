@@ -6,6 +6,7 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import java.sql.PreparedStatement;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -21,11 +22,24 @@ public class ExpensesRepository {
     private static final String INSERT_EXPENSE_SQL = "INSERT INTO expenses (amount, description, category_id) VALUES (?, ?, ?)";
     private static final String UPDATE_EXPENSE_SQL = "UPDATE expenses SET amount = ?, description = ? WHERE id = ?";
     private static final String DELETE_EXPENSE_SQL = "DELETE FROM expenses WHERE id = ?";
+    private static final String SELECT_ALL_WITH_CATEGORY_SQL = 
+        "SELECT e.id, e.amount, e.description, e.category_id as \"categoryId\", c.name as \"categoryName\", c.category_limit as \"categoryLimit\" " +
+        "FROM expenses e " +
+        "JOIN category c ON e.category_id = c.id";
 
     private final JdbcTemplate jdbcTemplate;
 
     public ExpensesRepository(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
+    }
+
+    /**
+     * Retrieves all expenses along with their category names.
+     *
+     * @return a list of maps containing expense and category data
+     */
+    public List<Map<String, Object>> getAllExpensesWithCategory() {
+        return jdbcTemplate.queryForList(SELECT_ALL_WITH_CATEGORY_SQL);
     }
 
     /**
