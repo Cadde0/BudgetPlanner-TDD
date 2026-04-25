@@ -158,6 +158,28 @@ class ExpensesControllerTest {
     }
 
     @Test
+    void testDeleteExpense() {
+        when(expensesService.deleteExpense(15)).thenReturn(true);
+
+        ResponseEntity<Boolean> response = expensesController.deleteExpense(15);
+
+        assertEquals(200, response.getStatusCode().value());
+        assertEquals(true, response.getBody());
+        verify(expensesService).deleteExpense(15);
+    }
+
+    @Test
+    void testDeleteExpenseReturnsFalse() {
+        when(expensesService.deleteExpense(99)).thenReturn(false);
+
+        ResponseEntity<Boolean> response = expensesController.deleteExpense(99);
+
+        assertEquals(200, response.getStatusCode().value());
+        assertEquals(false, response.getBody());
+        verify(expensesService).deleteExpense(99);
+    }
+
+    @Test
     void testSetCategoryForExpense() {
         ResponseEntity<Boolean> response = expensesController.setCategory(6, 1);
 

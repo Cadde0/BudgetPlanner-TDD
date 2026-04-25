@@ -20,6 +20,7 @@ public class ExpensesRepository {
     private static final String UPDATE_CATEGORY_SQL = "UPDATE expenses SET category_id = ? WHERE id = ?";
     private static final String INSERT_EXPENSE_SQL = "INSERT INTO expenses (amount, description, category_id) VALUES (?, ?, ?)";
     private static final String UPDATE_EXPENSE_SQL = "UPDATE expenses SET amount = ?, description = ? WHERE id = ?";
+    private static final String DELETE_EXPENSE_SQL = "DELETE FROM expenses WHERE id = ?";
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -64,6 +65,19 @@ public class ExpensesRepository {
         String description = extractDescription(expense);
 
         int rows = jdbcTemplate.update(UPDATE_EXPENSE_SQL, amount, description, id);
+        return rows > 0;
+    }
+
+    /**
+     * Deletes an expense by its ID.
+     *
+     * @param id the ID of the expense to delete
+     * @return true if the expense was deleted, false if not found
+     * @throws IllegalArgumentException if id is not positive
+     */
+    public boolean deleteExpense(int id) {
+        validatePositiveId(id, "Expense ID");
+        int rows = jdbcTemplate.update(DELETE_EXPENSE_SQL, id);
         return rows > 0;
     }
 

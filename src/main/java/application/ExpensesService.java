@@ -43,6 +43,18 @@ public class ExpensesService {
     }
 
     /**
+     * Deletes an existing expense.
+     *
+     * @param id the ID of the expense to delete
+     * @return true when deletion succeeded
+     */
+    @Transactional
+    public boolean deleteExpense(int id) {
+        validatePositiveId(id, "Expense ID");
+        return expensesRepository.deleteExpense(id);
+    }
+
+    /**
      * Sets the category for a specific expense.
      *
      * @param expenseId  the expense ID (must be positive)

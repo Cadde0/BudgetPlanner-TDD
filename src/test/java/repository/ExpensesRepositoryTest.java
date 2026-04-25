@@ -245,6 +245,33 @@ class ExpensesRepositoryTest {
     }
 
     @Test
+    void testDeleteExpense() {
+        int categoryId = createTempCategory();
+        int id = expensesRepository.addExpense(expenseWithAmountDescriptionAndCategory(100, "Breakfast", categoryId));
+        
+        boolean deleted = expensesRepository.deleteExpense(id);
+
+        assertTrue(deleted);
+        Integer count = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM expenses WHERE id = ?", Integer.class, id);
+        assertEquals(0, count);
+    }
+
+    @Test
+    void testDeleteExpenseWithNonExistentIdReturnsFalse() {
+        boolean deleted = expensesRepository.deleteExpense(999999);
+        assertFalse(deleted);
+    }
+
+    @Test
+    void testDeleteExpenseWithInvalidIdThrows() {
+        Exception ex1 = assertThrows(InvalidDataAccessApiUsageException.class, () -> expensesRepository.deleteExpense(0));
+        assertTrue(ex1.getCause() instanceof IllegalArgumentException);
+
+        Exception ex2 = assertThrows(InvalidDataAccessApiUsageException.class, () -> expensesRepository.deleteExpense(-1));
+        assertTrue(ex2.getCause() instanceof IllegalArgumentException);
+    }
+
+    @Test
     void testSetCategoryForExpense() {
         // Act: Set category for an expense
         expensesRepository.setCategoryForExpense(6, 1);
@@ -285,4 +312,6 @@ class ExpensesRepositoryTest {
                 () -> expensesRepository.setCategoryForExpense(1, 99999),
                 "Should throw exception when category ID does not exist");
     }
+
+    
 }

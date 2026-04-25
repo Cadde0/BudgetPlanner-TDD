@@ -1,3 +1,4 @@
+
 package application;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -123,6 +124,33 @@ class ExpensesServiceUnitTest {
                 .when(expensesRepository).updateExpense(expense);
 
         assertThrows(IllegalArgumentException.class, () -> expensesService.updateExpense(expense));
+    }
+
+    @Test
+    void testDeleteExpense() {
+        when(expensesRepository.deleteExpense(10)).thenReturn(true);
+
+        boolean deleted = expensesService.deleteExpense(10);
+
+        assertTrue(deleted);
+        verify(expensesRepository).deleteExpense(10);
+    }
+
+    @Test
+    void testDeleteExpenseReturnsFalseWhenNotFound() {
+        when(expensesRepository.deleteExpense(999)).thenReturn(false);
+
+        boolean deleted = expensesService.deleteExpense(999);
+
+        assertFalse(deleted);
+        verify(expensesRepository).deleteExpense(999);
+    }
+
+    @Test
+    void testDeleteExpenseThrowsOnInvalidId() {
+        assertThrows(IllegalArgumentException.class, () -> expensesService.deleteExpense(0));
+        assertThrows(IllegalArgumentException.class, () -> expensesService.deleteExpense(-1));
+        verifyNoInteractions(expensesRepository);
     }
 
     /**

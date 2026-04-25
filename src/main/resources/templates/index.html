@@ -520,6 +520,7 @@
               <select id="${selectId}">${options}</select>
               <button class="btn-secondary" onclick="editExpense(${expense.id}, ${expense.amount ?? 0}, '${safeDescription}')">Edit</button>
               <button class="btn-secondary" onclick="assignCategoryFromRow(${expense.id}, '${selectId}')">Set</button>
+              <button class="btn-danger" onclick="deleteExpense(${expense.id})">Delete</button>
             </td>`;
 
           expensesTableBody.appendChild(tr);
@@ -616,6 +617,21 @@
         expenseAmountInput.value = amount;
         expenseDescriptionInput.value = description || "";
         setExpenseFormMode(true);
+      };
+
+      window.deleteExpense = async (id) => {
+        if (!confirm("Delete this expense?")) return;
+        const resp = await fetch(`/api/expenses/${id}`, { method: "DELETE" });
+        const deleted = await resp.json();
+        expenseResultDiv.textContent = deleted
+          ? `Expense #${id} deleted.`
+          : `Delete failed.`;
+        if (deleted) {
+          if (expenseIdInput.value == id) {
+            resetExpenseForm();
+          }
+          fetchExpenses();
+        }
       };
 
       expenseForm.addEventListener("submit", async (e) => {

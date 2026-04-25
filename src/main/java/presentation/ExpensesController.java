@@ -3,6 +3,7 @@ package presentation;
 import application.BudgetService;
 import application.ExpensesService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -47,6 +48,12 @@ public class ExpensesController {
         expense.put("id", id);
         boolean updated = expensesService.updateExpense(expense);
         return ResponseEntity.ok(updated);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Boolean> deleteExpense(@PathVariable int id) {
+        boolean deleted = expensesService.deleteExpense(id);
+        return ResponseEntity.ok(deleted);
     }
 
     @PutMapping("/{expenseId}/category/{categoryId}")
