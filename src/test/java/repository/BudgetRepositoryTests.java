@@ -3,6 +3,12 @@ package repository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
+import java.sql.PreparedStatement;
+import java.sql.Statement;
+
 import java.util.List;
 import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
@@ -16,6 +22,9 @@ class BudgetRepositoryTests {
 
 	@Autowired
 	private BudgetRepository budgetRepository;
+
+	@Autowired
+    private JdbcTemplate jdbcTemplate;
 
 	@Test
 	void testQueryAllRowsFromCategoryTable() {
@@ -50,12 +59,28 @@ class BudgetRepositoryTests {
         assertThrows(RuntimeException.class, () -> budgetRepository.queryAllRows(""), "Should throw for empty table name");
     }
 
-	@Test
-	void testQueryByIdReturnsRowForValidId() {
-		Map<String, Object> result = budgetRepository.queryById("category", 1);
-		assertNotNull(result, "Should return a row for valid ID");
-		assertEquals(1, result.get("id"), "ID should match the requested value");
-	}
+	    @Test
+    void testQueryByIdReturnsRowForValidId() {
+        // Insert test data and retrieve generated id
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        jdbcTemplate.update(connection -> {
+            PreparedStatement ps = connection.prepareStatement(
+                "INSERT INTO category (name, category_limit, description) VALUES (?, ?, ?)",
+                Statement.RETURN_GENERATED_KEYS
+            );
+            ps.setString(1, "Test Category");
+            ps.setInt(2, 100);
+            ps.setString(3, "Test Description");
+            return ps;
+        }, keyHolder);
+
+        int insertedId = keyHolder.getKey().intValue();
+
+        // Query by the generated id
+        Map<String, Object> result = budgetRepository.queryById("category", insertedId);
+        assertNotNull(result, "Should return a row for valid ID");
+        assertEquals(insertedId, result.get("id"), "ID should match the requested value");
+    }
 
 	@Test
 	void testQueryByIdReturnsNullForNonExistentId() {
