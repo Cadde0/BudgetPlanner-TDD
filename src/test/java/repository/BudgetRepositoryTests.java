@@ -59,28 +59,26 @@ class BudgetRepositoryTests {
         assertThrows(RuntimeException.class, () -> budgetRepository.queryAllRows(""), "Should throw for empty table name");
     }
 
-	    @Test
-    void testQueryByIdReturnsRowForValidId() {
-        // Insert test data and retrieve generated id
-        KeyHolder keyHolder = new GeneratedKeyHolder();
-        jdbcTemplate.update(connection -> {
-            PreparedStatement ps = connection.prepareStatement(
-                "INSERT INTO category (name, category_limit, description) VALUES (?, ?, ?)",
-                Statement.RETURN_GENERATED_KEYS
-            );
-            ps.setString(1, "Test Category");
-            ps.setInt(2, 100);
-            ps.setString(3, "Test Description");
-            return ps;
-        }, keyHolder);
+	@Test
+	void testQueryByIdReturnsRowForValidId() {
+    	KeyHolder keyHolder = new GeneratedKeyHolder();
+    	jdbcTemplate.update(connection -> {
+        	PreparedStatement ps = connection.prepareStatement(
+         	"INSERT INTO category (name, category_limit, description) VALUES (?, ?, ?)",
+            new String[]{"id"}  // ← specify only the key column
+        );
+        	ps.setString(1, "Test Category");
+        	ps.setInt(2, 100);
+        	ps.setString(3, "Test Description");
+        	return ps;
+    }, 	keyHolder);
 
-        int insertedId = keyHolder.getKey().intValue();
+    int insertedId = keyHolder.getKey().intValue();
 
-        // Query by the generated id
-        Map<String, Object> result = budgetRepository.queryById("category", insertedId);
-        assertNotNull(result, "Should return a row for valid ID");
-        assertEquals(insertedId, result.get("id"), "ID should match the requested value");
-    }
+    Map<String, Object> result = budgetRepository.queryById("category", insertedId);
+    assertNotNull(result, "Should return a row for valid ID");
+    assertEquals(insertedId, result.get("id"), "ID should match the requested value");
+}
 
 	@Test
 	void testQueryByIdReturnsNullForNonExistentId() {
