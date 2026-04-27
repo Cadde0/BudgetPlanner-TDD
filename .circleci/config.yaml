@@ -1,0 +1,40 @@
+version: 2.1
+
+jobs:
+  build:
+    docker:
+      - image: 'cimg/openjdk:17.0'
+      - image: 'cimg/postgres:17.0'
+        environment:
+          POSTGRES_DB: BudgetPlanner
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+    steps:
+      - checkout
+      - run:
+          name: Wait for Postgres to be ready
+          command: dockerize -wait tcp://localhost:5432 -timeout 1m
+      - run:
+          name: Analyze on SonarQube Cloud
+          command: |
+            mvn verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+              -Dsonar.projectKey=Cadde0_BudgetPlanner-TDD \
+              -Dspring.datasource.url=jdbc:postgresql://localhost:5432/BudgetPlanner \
+              -Dspring.datasource.username=postgres \
+              -Dspring.datasource.password=postgres \
+              -Dspring.jpa.hibernate.ddl-auto=create \
+              -Dspring.sql.init.mode=always \
+              -Dsonar.scm.disabled=true \
+              -Dsonar.sources=src/main/java,src/main/resources/templates \
+              -Dsonar.tests=src/test/java \
+              -Dsonar.coverage.exclusions=src/main/resources/templates/** \
+              -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
+              -Dsonar.sourceEncoding=UTF-8
+
+
+
+workflows:
+  main:
+    jobs:
+      - build:
+          context: SonarCloud
